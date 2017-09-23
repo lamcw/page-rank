@@ -1,5 +1,6 @@
 // graph.h ... Interface to Graph of strings
 // Written by John Shepherd, September 2015
+// Modified by Thomas Lam for COMP2521 assignment 2
 
 #ifndef GRAPH_H
 #define GRAPH_H
@@ -12,7 +13,7 @@ typedef struct graph *graph_t;
 
 // Function signatures
 
-graph_t new_graph(int);
+graph_t new_graph(void);
 void free_graph(graph_t);
 int add_edge(graph_t ,char *, char *);
 int get_n_vertices(graph_t);

@@ -21,6 +21,13 @@ int main(int argc, char **argv)
 	handle_t h = parse_url("url/url22.txt", "#start Section-1", "#end Section-1");
 	print_handle(h);
 	free_handle(h);
+
+	graph_t gr = new_graph();
+	add_edge(gr, "v1", "v2");
+	add_edge(gr, "v2", "v3");
+	add_edge(gr, "v2", "v1");
+	show_graph(gr, SHOW_INDENT);
+	free_graph(gr);
 	return 0;
 }
 

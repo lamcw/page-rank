@@ -21,8 +21,8 @@ static FILE *open_file(char *path, char *mode)
 	fp = fopen(path, mode);
 
 	if (fp == NULL) {
-		fprintf(stderr, "No such file: %s\n", path);
-		exit(1);
+		perror("Failed to open file");
+		exit(EXIT_FAILURE);
 	}
 
 	return fp;
@@ -102,8 +102,8 @@ static void add_size(handle_t h)
 		h->buf = tmp;
 		h->size++;
 	} else {
-		fprintf(stderr, "Not enough memory\n");
-		exit(1);
+		perror("realloc failed");
+		exit(EXIT_FAILURE);
 	}
 }
 

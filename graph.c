@@ -5,38 +5,40 @@
 
 #include "graph.h"
 
-typedef unsigned char num_t;
+#ifndef DUMP_ERR
+#define DUMP_ERR(ptr, str) \
+	if (ptr == NULL) {\
+		perror(str);\
+		exit(EXIT_FAILURE);\
+	}
+#endif
+			
+typedef unsigned char uchar;
 typedef struct graph {
+	// @nv - number of vertices
+	// @ne - number of edges
+	// note: nv should be equal to ne
 	int nv;
-	int max_v;
+	int ne;
+	// @vertex - vertex name
+	// @edges - adj matrix
 	char **vertex;
-	num_t **edges;
+	uchar **edges;
 } graph;
 
 static int get_vertex_id(graph_t , char *);
 static int add_vertex(graph_t, char *);
 
 // create empty graph
-graph_t new_graph(int max_v)
+graph_t new_graph(void)
 {
 	graph_t new = malloc(sizeof(graph));
 	assert(new);
 	
 	new->nv = 0;
-	new->max_v = max_v;
-	new->vertex = malloc(max_v * sizeof(char *));
-	assert(new->vertex);
-	new->edges = malloc(max_v * sizeof(num_t *));
-	assert(new->edges);
-
-	// init arrays
-	for (int i = 0; i < new->max_v; i++) {
-		new->vertex[i] = NULL;
-		new->edges[i] = malloc(max_v * sizeof(num_t));
-		assert(new->edges[i]);
-		for (int j = 0; j < new->max_v; j++)
-			new->edges[i][j] = 0;
-	}
+	new->ne = 0;
+	new->vertex = NULL;
+	new->edges = NULL;
 
 	return new;
 }
@@ -48,9 +50,39 @@ void free_graph(graph_t g)
 	
 	for (int i = 0; i < g->nv; i++)
 		free(g->vertex[i]);
-	for (int i = 0; i < g->max_v; i++)
+
+	for (int i = 0; i < g->ne; i++)
 		free(g->edges[i]);
+
+	free(g->vertex);
 	free(g->edges);
+	free(g);
+}
+
+// add g->edges' row and column by 1
+static void add_mtrx_size(graph_t g)
+{
+	assert(g);
+
+	uchar **tmp = realloc(g->edges, (g->ne + 1) * sizeof(uchar *));
+	DUMP_ERR(tmp, "realloc failed");
+
+	g->edges = tmp;
+	g->edges[g->ne] = NULL;
+	for (int i = 0; i < g->ne + 1; i++) {
+		uchar *tmp = realloc(g->edges[i], (g->ne + 1) * sizeof(uchar));
+		DUMP_ERR(tmp, "realloc failed");
+
+		g->edges[i] = tmp;
+		// init last column with 0
+		g->edges[i][g->ne] = 0;
+		// init last row with 0s
+		if (i == g->ne) {
+			for (int j = 0; j < g->ne + 1; j++)
+				g->edges[i][j] = 0;
+		}
+	}
+	g->ne++;
 }
 
 int add_edge(graph_t g, char *src, char *dest)
@@ -59,16 +91,14 @@ int add_edge(graph_t g, char *src, char *dest)
 	
 	int v = get_vertex_id(g, src);
 	if (v < 0) {
-		if (g->nv >= g->max_v) return 0;
+		add_mtrx_size(g);
 		v = add_vertex(g, src);
-		g->nv++;
 	}
 
 	int w = get_vertex_id(g, dest);
 	if (w < 0) {
-		if (g->nv >= g->max_v) return 0;
+		add_mtrx_size(g);
 		w = add_vertex(g, dest);
-		g->nv++;
 	}
 
 	g->edges[v][w] = 1;
@@ -124,11 +154,19 @@ static int get_vertex_id(graph_t g, char *name)
 	return -1;
 }
 
-int add_vertex(graph_t g, char *name)
+static int add_vertex(graph_t g, char *name)
 {
+	assert(strlen(name) > 0);
+	char **tmp = realloc(g->vertex, (g->nv + 1) * sizeof(char *));
+
+	DUMP_ERR(tmp, "malloc failed");
+
+	g->vertex = tmp;
 	// use malloc + strcpy instead of strdup since strdup
 	// is not in C standard library
-	g->vertex[g->nv] = (char *)malloc(strlen(name) + 1);
+	g->vertex[g->nv] = malloc(strlen(name) + 1);
 	strcpy(g->vertex[g->nv], name);
-	return g->nv;
+	g->nv++;
+
+	return g->nv - 1;
 }
