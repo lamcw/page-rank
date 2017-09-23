@@ -20,7 +20,6 @@ typedef unsigned char uchar;
 typedef struct graph {
 	// @nv - number of vertices
 	// @ne - number of edges
-	// note: nv should be equal to ne
 	int nv;
 	int ne;
 	// @vertex - vertex name
