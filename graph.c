@@ -12,7 +12,10 @@
 		exit(EXIT_FAILURE);\
 	}
 #endif
-			
+
+// use uchar to save memory when representing an "edge"
+// uchar == 1: has edge
+// uchar == 0: no edge
 typedef unsigned char uchar;
 typedef struct graph {
 	// @nv - number of vertices
@@ -28,6 +31,7 @@ typedef struct graph {
 
 static int get_vertex_id(graph_t , char *);
 static int add_vertex(graph_t, char *);
+static void add_mtrx_size(graph_t g);
 
 // create empty graph
 graph_t new_graph(void)
@@ -105,6 +109,7 @@ int add_edge(graph_t g, char *src, char *dest)
 	return 1;
 }
 
+// check if 2 vertices are connected directly
 int is_connected(graph_t g, char *src, char *dest)
 {
 	assert(g);
@@ -131,7 +136,7 @@ void show_graph(graph_t g, int mode)
 	else {
 		printf("graph has %d vertices:\n", g->nv);
 		for (int i = 0; i < g->nv; i++) {
-			if (mode == SHOW_MTX) {
+			if (mode == SHOW_MTRX) {
 				for (int j = 0; j < g->nv; j++)
 					printf("%d", g->edges[i][j]);
 				putchar('\n');

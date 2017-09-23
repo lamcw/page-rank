@@ -7,7 +7,7 @@
 
 // show_graph mode constants
 #define SHOW_INDENT 0
-#define SHOW_MTX 1
+#define SHOW_MTRX 1
 
 typedef struct graph *graph_t;
 
