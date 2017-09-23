@@ -5,6 +5,8 @@
 #include "parser.h"
 
 void page_rank(int, int, int);
+handle_t get_collection(char *path);
+Graph get_graph(char *path);
 
 int main(int argc, char **argv)
 {
@@ -14,11 +16,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	//int d = atoi(argv[1]);
-	//int diff_pr = atoi(argv[2]);
-	//int max_iter = atoi(argv[3]);
+	page_rank(atoi(argv[1]), atoi(argv[1]), atoi(argv[1]));
 
-	handle_t h = parse("url/collection.txt");
+	handle_t h = parse_url("url/url22.txt", "#start Section-1", "#end Section-1");
 	print_handle(h);
 	free_handle(h);
 	return 0;
