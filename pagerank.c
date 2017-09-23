@@ -6,7 +6,7 @@
 
 void page_rank(int, int, int);
 handle_t get_collection(char *path);
-Graph get_graph(char *path);
+graph_t get_graph(char *path);
 
 int main(int argc, char **argv)
 {

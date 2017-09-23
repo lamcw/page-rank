@@ -1,6 +1,3 @@
-// graph.c ... Graph of strings (adjacency matrix)
-// Written by John Shepherd, September 2015
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -8,159 +5,130 @@
 
 #include "graph.h"
 
-#define strEQ(g,t) (strcmp((g),(t)) == 0)
+typedef unsigned char num_t;
+typedef struct graph {
+	int nv;
+	int max_v;
+	char **vertex;
+	num_t **edges;
+} graph;
 
-typedef unsigned char Num;
+static int get_vertex_id(graph_t , char *);
+static int add_vertex(graph_t, char *);
 
-typedef struct GraphRep {
-	int   nV;
-	int   maxV;
-	char  **vertex;
-	Num   **edges;
-} GraphRep;
-
-// Function signatures
-
-Graph newGraph();
-void  disposeGraph(Graph);
-int   addEdge(Graph,char *,char *);
-int   nVertices(Graph);
-int   isConnected(Graph, char *, char *);
-void  showGraph(Graph,int);
-
-static int vertexID(char *, char **, int);
-int addVertex(char *, char **, int);
-
-// newGraph()
-// - create an initially empty Graph
-Graph newGraph(int maxV)
+// create empty graph
+graph_t new_graph(int max_v)
 {
-	Graph new = malloc(sizeof(GraphRep));
-	assert(new != NULL);
-	int i, j;
-	new->nV = 0;
-	new->maxV = maxV;
-	new->vertex = malloc(maxV*sizeof(char *));
-	assert(new->vertex != NULL);
-	new->edges = malloc(maxV*sizeof(Num *));
-	assert(new->edges != NULL);
-	for (i = 0; i < maxV; i++) {
+	graph_t new = malloc(sizeof(graph));
+	assert(new);
+	
+	new->nv = 0;
+	new->max_v = max_v;
+	new->vertex = malloc(max_v * sizeof(char *));
+	assert(new->vertex);
+	new->edges = malloc(max_v * sizeof(num_t *));
+	assert(new->edges);
+
+	// init arrays
+	for (int i = 0; i < new->max_v; i++) {
 		new->vertex[i] = NULL;
-		new->edges[i] = malloc(maxV*sizeof(Num));
-		assert(new->edges[i] != NULL);
-		for (j = 0; j < maxV; j++)
+		new->edges[i] = malloc(max_v * sizeof(num_t));
+		assert(new->edges[i]);
+		for (int j = 0; j < new->max_v; j++)
 			new->edges[i][j] = 0;
 	}
+
 	return new;
 }
 
-// disposeGraph(Graph)
-// - clean up memory associated with Graph
-void disposeGraph(Graph g)
+// free graph memory
+void free_graph(graph_t g)
 {
 	if (g == NULL) return;
-	int i;
-	for (i = 0; i < g->nV; i++) {
+	
+	for (int i = 0; i < g->nv; i++)
 		free(g->vertex[i]);
-	}
-	for (i = 0; i < g->maxV; i++) {
+	for (int i = 0; i < g->max_v; i++)
 		free(g->edges[i]);
-	}
 	free(g->edges);
 }
 
-// addEdge(Graph,Src,Dest)
-// - add an edge from Src to Dest
-// - returns 1 if edge successfully added
-// - returns 0 if unable to add edge
-//   (usually because nV exceeds maxV)
-int addEdge(Graph g, char *src, char *dest)
+int add_edge(graph_t g, char *src, char *dest)
 {
-	assert(g != NULL);
-	int v = vertexID(src,g->vertex,g->nV);
+	assert(g);
+	
+	int v = get_vertex_id(g, src);
 	if (v < 0) {
-		if (g->nV >= g->maxV) return 0;
-		v = addVertex(src,g->vertex,g->nV);
-		g->nV++;
+		if (g->nv >= g->max_v) return 0;
+		v = add_vertex(g, src);
+		g->nv++;
 	}
-	int w = vertexID(dest,g->vertex,g->nV);
+
+	int w = get_vertex_id(g, dest);
 	if (w < 0) {
-		if (g->nV >= g->maxV) return 0;
-		w = addVertex(dest,g->vertex,g->nV);
-		g->nV++;
+		if (g->nv >= g->max_v) return 0;
+		w = add_vertex(g, dest);
+		g->nv++;
 	}
+
 	g->edges[v][w] = 1;
 	return 1;
 }
 
-// isConnected(Graph,Src,Dest)
-// - check whether there is an edge from Src->Dest
-int isConnected(Graph g, char *src, char *dest)
+int is_connected(graph_t g, char *src, char *dest)
 {
-	assert(g != NULL);
-	int v = vertexID(src,g->vertex,g->nV);
-	int w = vertexID(dest,g->vertex,g->nV);
+	assert(g);
+	int v = get_vertex_id(g, src);
+	int w = get_vertex_id(g, dest);
+
 	if (v < 0 || w < 0)
 		return 0;
 	else
 		return g->edges[v][w];
 }
 
-// nVertices(Graph)
-// - return # vertices currently in Graph
-int nVertices(Graph g)
+int get_n_vertices(graph_t g)
 {
-	assert(g != NULL);
-	return (g->nV);
+	assert(g);
+	return g->nv;
 }
 
-// showGraph(Graph)
-// - display Graph
-void showGraph(Graph g, int mode)
+void show_graph(graph_t g, int mode)
 {
-	assert(g != NULL);
-	if (g->nV == 0)
-		printf("Graph is empty\n");
+	assert(g);
+	if (g->nv == 0)
+		fprintf(stderr, "graph is empty\n");
 	else {
-		printf("Graph has %d vertices:\n",g->nV);
-		int i, j;
-		if (mode == 1) {
-			for (i = 0; i < g->nV; i++) {
-				for (j = 0; j < g->nV; j++)
-					printf("%d",g->edges[i][j]);
+		printf("graph has %d vertices:\n", g->nv);
+		for (int i = 0; i < g->nv; i++) {
+			if (mode == SHOW_MTX) {
+				for (int j = 0; j < g->nv; j++)
+					printf("%d", g->edges[i][j]);
 				putchar('\n');
-			}
-		}
-		else {
-			for (i = 0; i < g->nV; i++) {
+			} else if (mode == SHOW_INDENT) {
 				printf("Vertex: %s\n", g->vertex[i]);
 				printf("connects to\n");
-				for (j = 0; j < g->nV; j++) {
+				for (int j = 0; j < g->nv; j++) {
 					if (g->edges[i][j])
-						printf("   %s\n",g->vertex[j]);
+						printf("   %s\n", g->vertex[j]);
 				}
 			}
 		}
 	}
 }
 
-// Helper functions
-
-// vertexID(Str,Names,N)
-// - searches for Str in array of Names[N]
-// - returns index of Str if found, -1 if not
-static int vertexID(char *str, char **names, int N)
+static int get_vertex_id(graph_t g, char *name)
 {
-	int i;
-	for (i = 0; i < N; i++)
-		if (strEQ(str,names[i])) return i;
+	for (int i = 0; i < g->nv; i++)
+		if (strcmp(name, g->vertex[i]) == 0) return i;
 	return -1;
 }
 
-// addVertex(Str,Names,N)
-// - add Str at end of Names
-int addVertex(char *str, char **names, int N)
+int add_vertex(graph_t g, char *name)
 {
-	strcpy(names[N], str);
-	return N;
+	// use malloc + strcpy instead of strdup since strdup
+	// is not in C standard library
+	g->vertex[g->nv] = (char *)malloc(strlen(name) + 1);
+	strcpy(g->vertex[g->nv], name);
+	return g->nv;
 }
