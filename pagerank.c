@@ -1,14 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
-#include "graph.h"
-#include "parser.h"
 #include "pagerank.h"
-
-void page_rank(int, int, int);
-handle_t get_collection(char *path);
-graph_t get_graph(char *path);
 
 int main(int argc, char **argv)
 {
@@ -18,40 +13,34 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	page_rank(atoi(argv[1]), atoi(argv[1]), atoi(argv[1]));
-
-	handle_t h = parse_url("url/url22.txt", "#start Section-1", "#end Section-1");
-	print_handle(h);
-	free_handle(h);
-
-	handle_t hh = parse("url/collection.txt");
-	print_handle(hh);
-	free_handle(hh);
-
-	graph_t gr = new_graph();
-	/*srand(time(NULL));
-	int size = 100000;
-	for (int i = 0; i < size; i++) {
-		char str1[10];
-		char str2[10];
-		sprintf(str1, "v%d", rand() % size);
-		sprintf(str2, "v%d", rand() % size);
-		add_edge(gr, str1, str2);
-	}*/
-	add_edge(gr, "v1", "v2");
-	add_edge(gr, "v1", "v3");
-	add_edge(gr, "v4", "v1");
-	add_edge(gr, "v5", "v1");
-	add_edge(gr, "v6", "v1");
-	add_edge(gr, "v1", "v1");
-	printf("v1 out %d\n", outlink(gr, 2));
-	printf("v1 in %d\n", inlink(gr, 0));
-	show_graph(gr,0);
-	show_graph(gr,1);
-	free_graph(gr);
+	handle_t coll = parse("url/collection.txt");
+	print_handle(coll);
+	graph_t g = get_graph(coll);
+	page_rank(g, atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+	free_graph(g);
+	free_handle(coll);
 	return 0;
 }
 
-void page_rank(int d, int diff_pr, int max_iter)
+graph_t get_graph(handle_t collection)
 {
+	graph_t g = new_graph();
+
+	for (int i = 0; i < handle_size(collection); i++) {
+		char *fname = malloc(strlen(collection->buf[i]) + 20);
+		if (fname == NULL) exit(1);
+		sprintf(fname, "url/%s.txt", collection->buf[i]);
+		handle_t hd = parse_url(fname, "#start Section-1", "#end Section-1");
+		for (int j = 0; j < handle_size(hd); j++)
+			add_edge(g, collection->buf[i], hd->buf[j]);
+		free(fname);
+		free_handle(hd);
+	}
+	show_graph(g, 0);
+	return g;
+}
+url_t *page_rank(graph_t g, int d, int diff_pr, int max_iter)
+{
+	url_t *list = NULL;
+	return list;
 }

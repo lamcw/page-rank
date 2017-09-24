@@ -9,7 +9,25 @@
 #define SHOW_INDENT 0
 #define SHOW_MTRX 1
 
-typedef struct graph *graph_t;
+typedef struct _graph *graph_t;
+// use uchar to save memory when representing an "edge"
+// uchar == 1: has edge
+// uchar == 0: no edge
+typedef unsigned char uchar;
+typedef struct _graph {
+	// @nv - number of vertices
+	// @ne - number of edges
+	// @max_v - maximum number of vertices (not used in this adt)
+	// @max_e - maximum number of edges
+	int nv;
+	int ne;
+	int max_v;
+	int max_e;
+	// @vertex - vertex name
+	// @edges - adj matrix
+	char **vertex;
+	uchar **edges;
+} graph;
 
 // Function signatures
 
@@ -17,8 +35,8 @@ graph_t new_graph(void);
 void free_graph(graph_t);
 int add_edge(graph_t ,char *, char *);
 int nvertices(graph_t);
-int outlink(graph_t, int);
-int inlink(graph_t, int);
+int outdegree(graph_t, int);
+int indegree(graph_t, int);
 int is_connected(graph_t, char *, char *);
 void show_graph(graph_t, int);
 

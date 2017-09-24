@@ -13,25 +13,6 @@
 	}
 #endif
 
-// use uchar to save memory when representing an "edge"
-// uchar == 1: has edge
-// uchar == 0: no edge
-typedef unsigned char uchar;
-typedef struct graph {
-	// @nv - number of vertices
-	// @ne - number of edges
-	// @max_v - maximum number of vertices (not used in this adt)
-	// @max_e - maximum number of edges
-	int nv;
-	int ne;
-	int max_v;
-	int max_e;
-	// @vertex - vertex name
-	// @edges - adj matrix
-	char **vertex;
-	uchar **edges;
-} graph;
-
 static int get_vertex_id(graph_t , char *);
 static int add_vertex(graph_t, char *);
 static void add_mtrx_size(graph_t g);
@@ -39,7 +20,7 @@ static void add_mtrx_size(graph_t g);
 // create empty graph
 graph_t new_graph(void)
 {
-	graph_t new = malloc(sizeof(graph));
+	graph_t new = malloc(sizeof(struct _graph));
 	assert(new);
 	
 	new->nv = new->max_v = 0;
@@ -138,7 +119,7 @@ int nvertices(graph_t g)
 
 // count number of outgoing links of one node (doesnt count
 // self loop)
-int outlink(graph_t g, int id)
+int outdegree(graph_t g, int id)
 {
 	int count = 0;
 	for (int i = 0; i < g->ne; i++)
@@ -148,7 +129,7 @@ int outlink(graph_t g, int id)
 
 // count number of incoming links of one node (doesnt count
 // self loop)
-int inlink(graph_t g, int id)
+int indegree(graph_t g, int id)
 {
 	int count = 0;
 	for (int i = 0; i < g->ne; i++)

@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS= -Wall -Werror -g -std=c11 -pg
+CFLAGS= -Wall -Werror -g -std=c11
 OBJS=parser.o graph.o
 
 pagerank: pagerank.o $(OBJS)

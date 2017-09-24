@@ -5,12 +5,6 @@
 
 #include "parser.h"
 
-struct handle {
-	int size;
-	int max_size;
-	char **buf;
-} handle;
-
 static void add_size(handle_t);
 static FILE *open_file(char *, char *);
 static handle_t new_handle(void);
@@ -31,7 +25,7 @@ static FILE *open_file(char *path, char *mode)
 
 static handle_t new_handle(void)
 {
-	handle_t h = (handle_t)malloc(sizeof(struct handle));
+	handle_t h = (handle_t)malloc(sizeof(handle));
 	assert(h);
 	h->buf = NULL;
 	h->size = h->max_size = 0;
@@ -123,4 +117,9 @@ void print_handle(handle_t h)
 {
 	for (int i = 0; i < h->size; i++)
 		printf("%s\n", h->buf[i]);
+}
+
+int handle_size(handle_t h)
+{
+	return h->size;
 }
