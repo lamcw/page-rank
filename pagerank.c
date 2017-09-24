@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "graph.h"
 #include "parser.h"
@@ -23,10 +24,15 @@ int main(int argc, char **argv)
 	free_handle(h);
 
 	graph_t gr = new_graph();
-	add_edge(gr, "v1", "v2");
-	add_edge(gr, "v2", "v3");
-	add_edge(gr, "v2", "v1");
-	show_graph(gr, SHOW_INDENT);
+	srand(time(NULL));
+	int size = 100;
+	for (int i = 0; i < size; i++) {
+		char str1[10];
+		char str2[10];
+		sprintf(str1, "v%d", rand() % size);
+		sprintf(str2, "v%d", rand() % size);
+		add_edge(gr, str1, str2);
+	}
 	free_graph(gr);
 	return 0;
 }

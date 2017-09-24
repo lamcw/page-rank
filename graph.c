@@ -22,6 +22,8 @@ typedef struct graph {
 	// @ne - number of edges
 	int nv;
 	int ne;
+	int max_v;
+	int max_e;
 	// @vertex - vertex name
 	// @edges - adj matrix
 	char **vertex;
@@ -38,8 +40,9 @@ graph_t new_graph(void)
 	graph_t new = malloc(sizeof(graph));
 	assert(new);
 	
-	new->nv = 0;
-	new->ne = 0;
+	new->nv = new->max_v = 0;
+	new->ne = new->max_e = 0;
+	new->max_e = 0;
 	new->vertex = NULL;
 	new->edges = NULL;
 
@@ -54,7 +57,7 @@ void free_graph(graph_t g)
 	for (int i = 0; i < g->nv; i++)
 		free(g->vertex[i]);
 
-	for (int i = 0; i < g->ne; i++)
+	for (int i = 0; i < g->max_e; i++)
 		free(g->edges[i]);
 
 	free(g->vertex);
@@ -62,30 +65,30 @@ void free_graph(graph_t g)
 	free(g);
 }
 
-// add g->edges' row and column by 1
+// doules g->edges' row and column size
 static void add_mtrx_size(graph_t g)
 {
 	assert(g);
 
-	uchar **tmp = realloc(g->edges, (g->ne + 1) * sizeof(uchar *));
+	int new_size = g->ne == 0 ? 1 : 2 * g->ne;
+	uchar **tmp = realloc(g->edges, new_size * sizeof(uchar *));
 	DUMP_ERR(tmp, "realloc failed");
 
 	g->edges = tmp;
-	g->edges[g->ne] = NULL;
-	for (int i = 0; i < g->ne + 1; i++) {
-		uchar *tmp = realloc(g->edges[i], (g->ne + 1) * sizeof(uchar));
+	for (int i = g->ne; i < new_size; i++) g->edges[i] = NULL;
+	for (int i = 0; i < new_size; i++) {
+		uchar *tmp = realloc(g->edges[i], new_size * sizeof(uchar));
 		DUMP_ERR(tmp, "realloc failed");
 
 		g->edges[i] = tmp;
 		// init last column with 0
-		g->edges[i][g->ne] = 0;
-		// init last row with 0s
-		if (i == g->ne) {
-			for (int j = 0; j < g->ne + 1; j++)
-				g->edges[i][j] = 0;
-		}
+		for (int j = g->ne; j < new_size; j++) g->edges[i][j] = 0;
 	}
-	g->ne++;
+	for (int i = g->ne; i < new_size; i++) {
+		for (int j = 0; j < g->ne; j++)
+			g->edges[i][j] = 0;
+	}
+	g->max_e = new_size;
 }
 
 int add_edge(graph_t g, char *src, char *dest)
@@ -94,13 +97,15 @@ int add_edge(graph_t g, char *src, char *dest)
 	
 	int v = get_vertex_id(g, src);
 	if (v < 0) {
-		add_mtrx_size(g);
+		if (g->ne >= g->max_e) add_mtrx_size(g);
+		g->ne++;
 		v = add_vertex(g, src);
 	}
 
 	int w = get_vertex_id(g, dest);
 	if (w < 0) {
-		add_mtrx_size(g);
+		if (g->ne >= g->max_e) add_mtrx_size(g);
+		g->ne++;
 		w = add_vertex(g, dest);
 	}
 
