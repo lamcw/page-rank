@@ -5,11 +5,12 @@
 
 #include "graph.h"
 
+// macro for dumping error messages
 #ifndef DUMP_ERR
-#define DUMP_ERR(ptr, str) \
-	if (ptr == NULL) {\
-		perror(str);\
-		exit(EXIT_FAILURE);\
+#define DUMP_ERR(ptr, str)				\
+	if (ptr == NULL) {				\
+		perror(str);				\
+		exit(EXIT_FAILURE);			\
 	}
 #endif
 
@@ -144,6 +145,7 @@ void show_graph(graph_t g, int mode)
 		fprintf(stderr, "graph is empty\n");
 	else {
 		printf("graph has %d vertices:\n", g->nv);
+
 		for (int i = 0; i < g->nv; i++) {
 			if (mode == SHOW_MTRX) {
 				for (int j = 0; j < g->nv; j++)
@@ -154,7 +156,7 @@ void show_graph(graph_t g, int mode)
 				printf("connects to\n");
 				for (int j = 0; j < g->nv; j++) {
 					if (g->edges[i][j])
-						printf("   %s\n", g->vertex[j]);
+						printf("\t%s\n", g->vertex[j]);
 				}
 			}
 		}
