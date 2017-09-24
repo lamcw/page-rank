@@ -14,8 +14,4 @@ typedef struct _url {
 	double wpr;
 } url;
 
-url_t *page_rank(graph_t, int, int, int);
-handle_t get_collection(char *);
-graph_t get_graph(handle_t);
-
 #endif
