@@ -136,19 +136,23 @@ int nvertices(graph_t g)
 	return g->nv;
 }
 
-int get_outlink(graph_t g, int id)
+// count number of outgoing links of one node (doesnt count
+// self loop)
+int outlink(graph_t g, int id)
 {
 	int count = 0;
 	for (int i = 0; i < g->ne; i++)
-		if (g->edges[id][i]) count++;
+		if (g->edges[id][i] && i != id) count++;
 	return count;
 }
 
-int get_inlink(graph_t g, int id)
+// count number of incoming links of one node (doesnt count
+// self loop)
+int inlink(graph_t g, int id)
 {
 	int count = 0;
 	for (int i = 0; i < g->ne; i++)
-		if (g->edges[i][id]) count++;
+		if (g->edges[i][id] && i != id) count++;
 	return count;
 }
 

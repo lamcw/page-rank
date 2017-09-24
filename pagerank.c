@@ -4,6 +4,7 @@
 
 #include "graph.h"
 #include "parser.h"
+#include "pagerank.h"
 
 void page_rank(int, int, int);
 handle_t get_collection(char *path);
@@ -42,9 +43,11 @@ int main(int argc, char **argv)
 	add_edge(gr, "v4", "v1");
 	add_edge(gr, "v5", "v1");
 	add_edge(gr, "v6", "v1");
-	printf("v1 out %d\n", get_outlink(gr, 2));
-	printf("v1 in %d\n", get_inlink(gr, 0));
+	add_edge(gr, "v1", "v1");
+	printf("v1 out %d\n", outlink(gr, 2));
+	printf("v1 in %d\n", inlink(gr, 0));
 	show_graph(gr,0);
+	show_graph(gr,1);
 	free_graph(gr);
 	return 0;
 }

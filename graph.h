@@ -17,8 +17,8 @@ graph_t new_graph(void);
 void free_graph(graph_t);
 int add_edge(graph_t ,char *, char *);
 int nvertices(graph_t);
-int get_outlink(graph_t, int);
-int get_inlink(graph_t, int);
+int outlink(graph_t, int);
+int inlink(graph_t, int);
 int is_connected(graph_t, char *, char *);
 void show_graph(graph_t, int);
 
