@@ -20,6 +20,8 @@ typedef unsigned char uchar;
 typedef struct graph {
 	// @nv - number of vertices
 	// @ne - number of edges
+	// @max_v - maximum number of vertices (not used in this adt)
+	// @max_e - maximum number of edges
 	int nv;
 	int ne;
 	int max_v;
@@ -75,15 +77,17 @@ static void add_mtrx_size(graph_t g)
 	DUMP_ERR(tmp, "realloc failed");
 
 	g->edges = tmp;
+	// init new row ptrs to NULL
 	for (int i = g->ne; i < new_size; i++) g->edges[i] = NULL;
 	for (int i = 0; i < new_size; i++) {
 		uchar *tmp = realloc(g->edges[i], new_size * sizeof(uchar));
 		DUMP_ERR(tmp, "realloc failed");
 
 		g->edges[i] = tmp;
-		// init last column with 0
+		// init new columns with 0
 		for (int j = g->ne; j < new_size; j++) g->edges[i][j] = 0;
 	}
+	// init new rows and columns with 0
 	for (int i = g->ne; i < new_size; i++) {
 		for (int j = 0; j < g->ne; j++)
 			g->edges[i][j] = 0;

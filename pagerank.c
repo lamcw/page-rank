@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
 	graph_t gr = new_graph();
 	srand(time(NULL));
-	int size = 100;
+	int size = 100000;
 	for (int i = 0; i < size; i++) {
 		char str1[10];
 		char str2[10];
@@ -37,6 +37,7 @@ int main(int argc, char **argv)
 		sprintf(str2, "v%d", rand() % size);
 		add_edge(gr, str1, str2);
 	}
+	show_graph(gr,0);
 	free_graph(gr);
 	return 0;
 }

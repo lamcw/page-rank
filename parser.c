@@ -97,6 +97,7 @@ handle_t parse_url(char *path, char *start_tag, char *end_tag)
 static void add_size(handle_t h)
 {
 	assert(h);
+	// doubles the original size
 	int new_size = h->size == 0 ? 1 : 2 * h->size;
 	char **tmp = (char **)realloc(h->buf, new_size * sizeof(char *));
 
