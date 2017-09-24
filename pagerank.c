@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 	free_handle(hh);
 
 	graph_t gr = new_graph();
-	srand(time(NULL));
+	/*srand(time(NULL));
 	int size = 100000;
 	for (int i = 0; i < size; i++) {
 		char str1[10];
@@ -36,7 +36,14 @@ int main(int argc, char **argv)
 		sprintf(str1, "v%d", rand() % size);
 		sprintf(str2, "v%d", rand() % size);
 		add_edge(gr, str1, str2);
-	}
+	}*/
+	add_edge(gr, "v1", "v2");
+	add_edge(gr, "v1", "v3");
+	add_edge(gr, "v4", "v1");
+	add_edge(gr, "v5", "v1");
+	add_edge(gr, "v6", "v1");
+	printf("v1 out %d\n", get_outlink(gr, 2));
+	printf("v1 in %d\n", get_inlink(gr, 0));
 	show_graph(gr,0);
 	free_graph(gr);
 	return 0;

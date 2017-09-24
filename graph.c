@@ -130,10 +130,26 @@ int is_connected(graph_t g, char *src, char *dest)
 		return g->edges[v][w];
 }
 
-int get_n_vertices(graph_t g)
+int nvertices(graph_t g)
 {
 	assert(g);
 	return g->nv;
+}
+
+int get_outlink(graph_t g, int id)
+{
+	int count = 0;
+	for (int i = 0; i < g->ne; i++)
+		if (g->edges[id][i]) count++;
+	return count;
+}
+
+int get_inlink(graph_t g, int id)
+{
+	int count = 0;
+	for (int i = 0; i < g->ne; i++)
+		if (g->edges[i][id]) count++;
+	return count;
 }
 
 void show_graph(graph_t g, int mode)
