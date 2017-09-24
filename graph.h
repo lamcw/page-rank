@@ -16,7 +16,9 @@ typedef struct graph *graph_t;
 graph_t new_graph(void);
 void free_graph(graph_t);
 int add_edge(graph_t ,char *, char *);
-int get_n_vertices(graph_t);
+int nvertices(graph_t);
+int outlink(graph_t, int);
+int inlink(graph_t, int);
 int is_connected(graph_t, char *, char *);
 void show_graph(graph_t, int);
 

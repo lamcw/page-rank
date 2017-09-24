@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "graph.h"
 #include "parser.h"
+#include "pagerank.h"
 
 void page_rank(int, int, int);
 handle_t get_collection(char *path);
@@ -22,11 +24,30 @@ int main(int argc, char **argv)
 	print_handle(h);
 	free_handle(h);
 
+	handle_t hh = parse("url/collection.txt");
+	print_handle(hh);
+	free_handle(hh);
+
 	graph_t gr = new_graph();
+	/*srand(time(NULL));
+	int size = 100000;
+	for (int i = 0; i < size; i++) {
+		char str1[10];
+		char str2[10];
+		sprintf(str1, "v%d", rand() % size);
+		sprintf(str2, "v%d", rand() % size);
+		add_edge(gr, str1, str2);
+	}*/
 	add_edge(gr, "v1", "v2");
-	add_edge(gr, "v2", "v3");
-	add_edge(gr, "v2", "v1");
-	show_graph(gr, SHOW_INDENT);
+	add_edge(gr, "v1", "v3");
+	add_edge(gr, "v4", "v1");
+	add_edge(gr, "v5", "v1");
+	add_edge(gr, "v6", "v1");
+	add_edge(gr, "v1", "v1");
+	printf("v1 out %d\n", outlink(gr, 2));
+	printf("v1 in %d\n", inlink(gr, 0));
+	show_graph(gr,0);
+	show_graph(gr,1);
 	free_graph(gr);
 	return 0;
 }

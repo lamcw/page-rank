@@ -20,8 +20,12 @@ typedef unsigned char uchar;
 typedef struct graph {
 	// @nv - number of vertices
 	// @ne - number of edges
+	// @max_v - maximum number of vertices (not used in this adt)
+	// @max_e - maximum number of edges
 	int nv;
 	int ne;
+	int max_v;
+	int max_e;
 	// @vertex - vertex name
 	// @edges - adj matrix
 	char **vertex;
@@ -38,8 +42,9 @@ graph_t new_graph(void)
 	graph_t new = malloc(sizeof(graph));
 	assert(new);
 	
-	new->nv = 0;
-	new->ne = 0;
+	new->nv = new->max_v = 0;
+	new->ne = new->max_e = 0;
+	new->max_e = 0;
 	new->vertex = NULL;
 	new->edges = NULL;
 
@@ -54,7 +59,7 @@ void free_graph(graph_t g)
 	for (int i = 0; i < g->nv; i++)
 		free(g->vertex[i]);
 
-	for (int i = 0; i < g->ne; i++)
+	for (int i = 0; i < g->max_e; i++)
 		free(g->edges[i]);
 
 	free(g->vertex);
@@ -62,30 +67,32 @@ void free_graph(graph_t g)
 	free(g);
 }
 
-// add g->edges' row and column by 1
+// doules g->edges' row and column size
 static void add_mtrx_size(graph_t g)
 {
 	assert(g);
 
-	uchar **tmp = realloc(g->edges, (g->ne + 1) * sizeof(uchar *));
+	int new_size = g->ne == 0 ? 1 : 2 * g->ne;
+	uchar **tmp = realloc(g->edges, new_size * sizeof(uchar *));
 	DUMP_ERR(tmp, "realloc failed");
 
 	g->edges = tmp;
-	g->edges[g->ne] = NULL;
-	for (int i = 0; i < g->ne + 1; i++) {
-		uchar *tmp = realloc(g->edges[i], (g->ne + 1) * sizeof(uchar));
+	// init new row ptrs to NULL
+	for (int i = g->ne; i < new_size; i++) g->edges[i] = NULL;
+	for (int i = 0; i < new_size; i++) {
+		uchar *tmp = realloc(g->edges[i], new_size * sizeof(uchar));
 		DUMP_ERR(tmp, "realloc failed");
 
 		g->edges[i] = tmp;
-		// init last column with 0
-		g->edges[i][g->ne] = 0;
-		// init last row with 0s
-		if (i == g->ne) {
-			for (int j = 0; j < g->ne + 1; j++)
-				g->edges[i][j] = 0;
-		}
+		// init new columns with 0
+		for (int j = g->ne; j < new_size; j++) g->edges[i][j] = 0;
 	}
-	g->ne++;
+	// init new rows and columns with 0
+	for (int i = g->ne; i < new_size; i++) {
+		for (int j = 0; j < g->ne; j++)
+			g->edges[i][j] = 0;
+	}
+	g->max_e = new_size;
 }
 
 int add_edge(graph_t g, char *src, char *dest)
@@ -94,13 +101,15 @@ int add_edge(graph_t g, char *src, char *dest)
 	
 	int v = get_vertex_id(g, src);
 	if (v < 0) {
-		add_mtrx_size(g);
+		if (g->ne >= g->max_e) add_mtrx_size(g);
+		g->ne++;
 		v = add_vertex(g, src);
 	}
 
 	int w = get_vertex_id(g, dest);
 	if (w < 0) {
-		add_mtrx_size(g);
+		if (g->ne >= g->max_e) add_mtrx_size(g);
+		g->ne++;
 		w = add_vertex(g, dest);
 	}
 
@@ -121,10 +130,30 @@ int is_connected(graph_t g, char *src, char *dest)
 		return g->edges[v][w];
 }
 
-int get_n_vertices(graph_t g)
+int nvertices(graph_t g)
 {
 	assert(g);
 	return g->nv;
+}
+
+// count number of outgoing links of one node (doesnt count
+// self loop)
+int outlink(graph_t g, int id)
+{
+	int count = 0;
+	for (int i = 0; i < g->ne; i++)
+		if (g->edges[id][i] && i != id) count++;
+	return count;
+}
+
+// count number of incoming links of one node (doesnt count
+// self loop)
+int inlink(graph_t g, int id)
+{
+	int count = 0;
+	for (int i = 0; i < g->ne; i++)
+		if (g->edges[i][id] && i != id) count++;
+	return count;
 }
 
 void show_graph(graph_t g, int mode)
