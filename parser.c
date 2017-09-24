@@ -7,6 +7,7 @@
 
 struct handle {
 	int size;
+	int max_size;
 	char **buf;
 } handle;
 
@@ -33,7 +34,7 @@ static handle_t new_handle(void)
 	handle_t h = (handle_t)malloc(sizeof(struct handle));
 	assert(h);
 	h->buf = NULL;
-	h->size = 0;
+	h->size = h->max_size = 0;
 
 	return h;
 }
@@ -46,11 +47,11 @@ handle_t parse(char *path)
 	// malloc buffer
 	add_size(h);
 
-	while (fscanf(fp, "%ms", &(h->buf[h->size - 1])) != EOF)
-		add_size(h);
+	while (fscanf(fp, "%ms", &(h->buf[h->size])) != EOF) {
+		h->size++;
+		if (h->size >= h->max_size) add_size(h);
+	}
 
-	// reduce size
-	h->size--;
 	fclose(fp);
 	return h;
 }
@@ -75,9 +76,10 @@ handle_t parse_url(char *path, char *start_tag, char *end_tag)
 			char *token = strtok(buf, " ");
 
 			while (token != NULL) {
-				h->buf[h->size - 1] = (char *)malloc(strlen(token) + 1);
-				strcpy(h->buf[h->size - 1], token);
-				add_size(h);
+				h->buf[h->size] = (char *)malloc(strlen(token) + 1);
+				strcpy(h->buf[h->size], token);
+				h->size++;
+				if (h->size >= h->max_size) add_size(h);
 				token = strtok(NULL, " ");
 			}
 		}
@@ -86,21 +88,21 @@ handle_t parse_url(char *path, char *start_tag, char *end_tag)
 		free(buf);
 	}
 
-	// reduce size
-	h->size--;
 	fclose(fp);
 	return h;
 
 }
 
+// doubles buf size
 static void add_size(handle_t h)
 {
 	assert(h);
-	char **tmp = (char **)realloc(h->buf, (h->size + 1) * sizeof(char *));
+	int new_size = h->size == 0 ? 1 : 2 * h->size;
+	char **tmp = (char **)realloc(h->buf, new_size * sizeof(char *));
 
 	if (tmp) {
 		h->buf = tmp;
-		h->size++;
+		h->max_size = new_size;
 	} else {
 		perror("realloc failed");
 		exit(EXIT_FAILURE);

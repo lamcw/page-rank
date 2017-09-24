@@ -23,6 +23,10 @@ int main(int argc, char **argv)
 	print_handle(h);
 	free_handle(h);
 
+	handle_t hh = parse("url/collection.txt");
+	print_handle(hh);
+	free_handle(hh);
+
 	graph_t gr = new_graph();
 	srand(time(NULL));
 	int size = 100;
