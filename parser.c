@@ -65,7 +65,6 @@ handle_t parse_url(char *path, char *start_tag, char *end_tag)
 
 	// %m[^\n]\n reads whole line until '\n' (not including \n)
 	while (fscanf(fp, "%m[^\n]\n", &buf) != EOF) {
-		// start reading next iteration
 		if (strcmp(buf, end_tag) == 0) {
 			free(buf);
 			// break early to avoid more fscanf
@@ -83,7 +82,7 @@ handle_t parse_url(char *path, char *start_tag, char *end_tag)
 				token = strtok(NULL, " ");
 			}
 		}
-		// stop reading next iteration
+		// start reading next iteration
 		if (strcmp(buf, start_tag) == 0) read_buf = !read_buf;
 		free(buf);
 	}
