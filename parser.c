@@ -1,3 +1,5 @@
+// parse text files
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,7 +66,11 @@ handle_t parse_url(char *path, char *start_tag, char *end_tag)
 	// %m[^\n]\n reads whole line until '\n' (not including \n)
 	while (fscanf(fp, "%m[^\n]\n", &buf) != EOF) {
 		// start reading next iteration
-		if (strcmp(buf, end_tag) == 0) read_buf = !read_buf;
+		if (strcmp(buf, end_tag) == 0) {
+			free(buf);
+			// break early to avoid more fscanf
+			break;
+		}
 		if (read_buf) {
 			// use space as delimiter
 			char *token = strtok(buf, " ");

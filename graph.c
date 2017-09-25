@@ -138,6 +138,28 @@ int indegree(graph_t g, int id)
 	return count;
 }
 
+// return a list of node id(s) that has direct connecion with @id
+int *edge_to(graph_t g, int id, int *size)
+{
+	int *list = malloc(g->ne * sizeof(int));
+	DUMP_ERR(list, "malloc failed");
+	*size = 0;
+
+	for (int i = 0; i < g->ne; i++) {
+		if (g->edges[id][i] && i != id)
+			list[(*size)++] = i;
+	}
+
+	// shrink size
+	if (*size) {
+		int *tmp = realloc(list, *size * sizeof(int));
+		DUMP_ERR(tmp, "realloc failed");
+		list = tmp;
+	}
+
+	return list;
+}
+
 void show_graph(graph_t g, int mode)
 {
 	assert(g);

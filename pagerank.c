@@ -74,3 +74,11 @@ static urll_t page_rank(graph_t g,
 	}
 	return li;
 }
+
+static double weight_in(graph_t g, int pj, int pi)
+{
+}
+
+static double weight_out(graph_t g, int pj, int pi)
+{
+}

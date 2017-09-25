@@ -15,6 +15,8 @@ typedef struct _urll {
 typedef urll *urll_t;
 
 urll_t new_url_list(graph_t g, handle_t cltn);
+double getwpr(urll_t list, int id);
+void setwpr(urll_t list, int id, int wpr);
 void free_list(urll_t list);
 
 #endif
