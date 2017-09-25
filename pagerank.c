@@ -3,8 +3,9 @@
 #include <string.h>
 
 #include "pagerank.h"
+#include "url.h"
 
-static url_t *page_rank(graph_t, int, int, int);
+static urll_t page_rank(graph_t, handle_t, int, int, int);
 static graph_t get_graph(handle_t);
 
 int main(int argc, char **argv)
@@ -17,9 +18,10 @@ int main(int argc, char **argv)
 
 	handle_t coll = parse("url/collection.txt");
 	graph_t g = get_graph(coll);
-	free_handle(coll);
 
-	page_rank(g, atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+	urll_t l = page_rank(g, coll, atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+	free_list(l);
+	free_handle(coll);
 	free_graph(g);
 	return 0;
 }
@@ -44,8 +46,9 @@ static graph_t get_graph(handle_t collection)
 		handle_t hd = parse_url(fname, "#start Section-1", "#end Section-1");
 		// for each link in url?.txt
 		// add edge from this url to that link
-		for (int j = 0; j < handle_size(hd); j++)
+		for (int j = 0; j < handle_size(hd); j++) {
 			add_edge(g, collection->buf[i], hd->buf[j]);
+		}
 
 		// free memory used in this for iteration
 		free(fname);
@@ -55,8 +58,19 @@ static graph_t get_graph(handle_t collection)
 	return g;
 }
 
-static url_t *page_rank(graph_t g, int d, int diff_pr, int max_iter)
+static urll_t page_rank(graph_t g,
+			handle_t cltn,
+			int d,
+			int diff_pr,
+			int max_iter)
 {
-	url_t *list = NULL;
-	return list;
+	urll_t li = new_url_list(g, cltn);
+	int iter = 0;
+	int diff = diff_pr;
+	return li;
+	while (iter < max_iter && diff >= diff_pr) {
+		int pr = (1 - d) / cltn->size; // + d * sum(PR(pj;t)*Win*Wout
+		printf("%d\n",pr);
+	}
+	return li;
 }
