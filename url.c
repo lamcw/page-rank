@@ -11,12 +11,13 @@ typedef struct _url {
 	// url string
 	char *url;
 	// number of out going links
-	int out_degree;
-	int inlinks_size;
-	int outlinks_size;
-	// contains outgoing links to this url
-	int *inlinks;
-	int *outlinks;
+	// int out_degree;
+	// number of incoming links
+	// int in_degree;
+	// contains incoming links to this url
+	// int *inlinks;
+	// contains outgoing links to url(s)
+	// int *outlinks;
 	// weighted pagerank value
 	double wpr;
 } url;
@@ -27,7 +28,7 @@ urll_t new_url_list(graph_t g, handle_t cltn)
 	urll_t url_li = malloc(sizeof(urll));
 	if (url_li == NULL) exit(EXIT_FAILURE);
 
-	url_li->size = cltn->size;
+	url_li->size = handle_size(cltn);
 	url_li->li = malloc(url_li->size * sizeof(url_t));
 
 	// init url_t struct
@@ -39,11 +40,10 @@ urll_t new_url_list(graph_t g, handle_t cltn)
 		u->url = malloc(strlen(cltn->buf[i]) + 1);
 		strcpy(u->url, cltn->buf[i]);
 
-		u->out_degree = outdegree(g, i);
-		u->inlinks_size = 0;
-		u->inlinks = nodes_to(g, i, &u->inlinks_size);
-		u->outlinks_size = 0;
-		u->outlinks = nodes_from(g, i, &u->outlinks_size);
+		//u->out_degree = outdegree(g, i);
+		//u->in_degree = indegree(g, i);
+		//u->outlinks = nodes_to(g, i, &u->out_degree);
+		//u->inlinks = nodes_from(g, i, &u->in_degree);
 		u->wpr = (double)1 / cltn->size;
 	}
 
@@ -61,7 +61,7 @@ double getwpr(urll_t list, int id)
 	return list->li[id]->wpr;
 }
 
-int *get_outlinks(urll_t list, int id)
+/*int *get_outlinks(urll_t list, int id)
 {
 	return list->li[id]->outlinks;
 }
@@ -69,14 +69,14 @@ int *get_outlinks(urll_t list, int id)
 int *get_inlinks(urll_t list, int id)
 {
 	return list->li[id]->inlinks;
-}
+}*/
 
 void free_list(urll_t list)
 {
 	for (int i = 0; i < list->size; i++) {
 		free(list->li[i]->url);
-		free(list->li[i]->inlinks);
-		free(list->li[i]->outlinks);
+		//free(list->li[i]->inlinks);
+		//free(list->li[i]->outlinks);
 		free(list->li[i]);
 	}
 	free(list->li);

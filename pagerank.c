@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "pagerank.h"
 #include "url.h"
 
-static urll_t page_rank(graph_t, handle_t, int, int, int);
+static urll_t page_rank(graph_t, handle_t, double, double, int);
 static graph_t get_graph(handle_t);
 static double weight_out(graph_t g, int pj, int pi);
 static double weight_in(graph_t g, int pj, int pi);
@@ -21,7 +22,7 @@ int main(int argc, char **argv)
 	handle_t coll = parse("url/collection.txt");
 	graph_t g = get_graph(coll);
 
-	urll_t l = page_rank(g, coll, atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+	urll_t l = page_rank(g, coll, atof(argv[1]), atof(argv[2]), atoi(argv[3]));
 	free_list(l);
 	free_handle(coll);
 	free_graph(g);
@@ -62,30 +63,71 @@ static graph_t get_graph(handle_t collection)
 
 static urll_t page_rank(graph_t g,
 			handle_t cltn,
-			int d,
-			int diff_pr,
+			double d,
+			double diff_pr,
 			int max_iter)
 {
 	urll_t li = new_url_list(g, cltn);
 	int iter = 0;
-	int diff = diff_pr;
-	return li;
+	double diff = diff_pr;
+
+	// first term in the formula
+	const double fterm = (1 - d) / handle_size(cltn);
 	while (iter < max_iter && diff >= diff_pr) {
-		int pr = (1 - d) / cltn->size; // + d * sum(PR(pj;t)*Win*Wout
-		// sum weight
-		printf("%d\n", pr);
-		weight_in(g, 1, 1);
-		weight_out(g, 1, 1);
+		iter++;
+		// stores new wpr value
+		double *wpr_list = calloc(handle_size(cltn), sizeof(double));
+
+		for (int i = 0; i < handle_size(cltn); i++) {
+			int size = 0;
+			// M(pi)
+			int *url_to = nodes_to(g, i, &size);
+			// sum(PR(pj;t) * Win * Wout
+			double sum = 0;
+			for (int j = 0; j < size; j++)
+				sum += getwpr(li, j) * weight_in(g, j, i) * weight_out(g, j, i);
+			// sum weight
+			wpr_list[i] = fterm + d * sum;
+			free(url_to);
+		}
+
+		for (int i = 0; i < handle_size(cltn); i++) {
+			printf("old %.8f new %.8f\n", getwpr(li, i), wpr_list[i]);
+			diff += fabs(wpr_list[i] - getwpr(li, i));
+			setwpr(li, i, wpr_list[i]);
+		}
+		free(wpr_list);
 	}
+	for (int i = 0; i < handle_size(cltn); i++)
+		printf("%.8f\n", getwpr(li, i));
 	return li;
 }
 
-static double weight_in(graph_t g, int pj, int pi)
+static double weight_in(graph_t g, int pi, int pj)
 {
-	return 0.0;
+	int deg_pj = indegree(g, pj);
+	double sum = 0;
+	int size = 0;
+	int *urls = nodes_from(g, pi, &size);
+
+	for (int i = 0; i < size; i++)
+		sum += indegree(g, urls[i]);
+	free(urls);
+
+	return (double)deg_pj / sum;
 }
 
 static double weight_out(graph_t g, int pj, int pi)
 {
-	return 0.0;
+	int deg_pj = outdegree(g, pj);
+	deg_pj = deg_pj == 0 ? 0.5 : deg_pj;
+	int sum = 0;
+	int size = 0;
+	int *urls = nodes_from(g, pi, &size);
+
+	for (int i = 0; i < size; i++)
+		sum += outdegree(g, urls[i]);
+	free(urls);
+
+	return (double)deg_pj / (double)sum;
 }
