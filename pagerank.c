@@ -7,6 +7,8 @@
 
 static urll_t page_rank(graph_t, handle_t, int, int, int);
 static graph_t get_graph(handle_t);
+static double weight_out(graph_t g, int pj, int pi);
+static double weight_in(graph_t g, int pj, int pi);
 
 int main(int argc, char **argv)
 {
@@ -70,15 +72,20 @@ static urll_t page_rank(graph_t g,
 	return li;
 	while (iter < max_iter && diff >= diff_pr) {
 		int pr = (1 - d) / cltn->size; // + d * sum(PR(pj;t)*Win*Wout
-		printf("%d\n",pr);
+		// sum weight
+		printf("%d\n", pr);
+		weight_in(g, 1, 1);
+		weight_out(g, 1, 1);
 	}
 	return li;
 }
 
 static double weight_in(graph_t g, int pj, int pi)
 {
+	return 0.0;
 }
 
 static double weight_out(graph_t g, int pj, int pi)
 {
+	return 0.0;
 }

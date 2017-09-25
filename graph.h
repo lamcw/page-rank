@@ -37,7 +37,8 @@ int add_edge(graph_t ,char *, char *);
 int nvertices(graph_t);
 int outdegree(graph_t, int);
 int indegree(graph_t, int);
-int *edge_to(graph_t, int, int *);
+int *nodes_to(graph_t, int, int *);
+int *nodes_from(graph_t, int, int *);
 int is_connected(graph_t, char *, char *);
 void show_graph(graph_t, int);
 

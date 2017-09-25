@@ -138,8 +138,8 @@ int indegree(graph_t g, int id)
 	return count;
 }
 
-// return a list of node id(s) that has direct connecion with @id
-int *edge_to(graph_t g, int id, int *size)
+// return a list of node id(s) that has outlink to @id
+int *nodes_to(graph_t g, int id, int *size)
 {
 	int *list = malloc(g->ne * sizeof(int));
 	DUMP_ERR(list, "malloc failed");
@@ -147,6 +147,28 @@ int *edge_to(graph_t g, int id, int *size)
 
 	for (int i = 0; i < g->ne; i++) {
 		if (g->edges[id][i] && i != id)
+			list[(*size)++] = i;
+	}
+
+	// shrink size
+	if (*size) {
+		int *tmp = realloc(list, *size * sizeof(int));
+		DUMP_ERR(tmp, "realloc failed");
+		list = tmp;
+	}
+
+	return list;
+}
+
+// return a list of node id(s) that has inlinks from @id
+int *nodes_from(graph_t g, int id, int *size)
+{
+	int *list = malloc(g->ne * sizeof(int));
+	DUMP_ERR(list, "malloc failed");
+	*size = 0;
+
+	for (int i = 0; i < g->ne; i++) {
+		if (g->edges[i][id] && i != id)
 			list[(*size)++] = i;
 	}
 
