@@ -146,7 +146,7 @@ int *nodes_to(graph_t g, int id, int *size)
 	*size = 0;
 
 	for (int i = 0; i < g->ne; i++) {
-		if (g->edges[id][i] && i != id)
+		if (g->edges[i][id] && i != id)
 			list[(*size)++] = i;
 	}
 
@@ -168,8 +168,9 @@ int *nodes_from(graph_t g, int id, int *size)
 	*size = 0;
 
 	for (int i = 0; i < g->ne; i++) {
-		if (g->edges[i][id] && i != id)
+		if (g->edges[id][i] && i != id) {
 			list[(*size)++] = i;
+		}
 	}
 
 	// shrink size
@@ -205,6 +206,11 @@ void show_graph(graph_t g, int mode)
 			}
 		}
 	}
+}
+
+char *id_to_name(graph_t g, int id)
+{
+	return g->vertex[id];
 }
 
 static int get_vertex_id(graph_t g, char *name)

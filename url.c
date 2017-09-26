@@ -7,7 +7,7 @@
 #include "url.h"
 
 // internal definition of url
-typedef struct _url {
+struct _url {
 	// url string
 	char *url;
 	// number of out going links
@@ -20,12 +20,18 @@ typedef struct _url {
 	// int *outlinks;
 	// weighted pagerank value
 	double wpr;
-} url;
+};
+
+// url struct LIST
+struct _urll {
+	int size;
+	url_t *li;
+};
 
 // takes in graph and collection to generate a list of url_t
 urll_t new_url_list(graph_t g, handle_t cltn)
 {
-	urll_t url_li = malloc(sizeof(urll));
+	urll_t url_li = malloc(sizeof(struct _urll));
 	if (url_li == NULL) exit(EXIT_FAILURE);
 
 	url_li->size = handle_size(cltn);
@@ -33,7 +39,7 @@ urll_t new_url_list(graph_t g, handle_t cltn)
 
 	// init url_t struct
 	for (int i = 0; i < url_li->size; i++) {
-		url_li->li[i] = malloc(sizeof(url));
+		url_li->li[i] = malloc(sizeof(struct _url));
 		// assign to var to make it more readable
 		url_t u = url_li->li[i];
 
@@ -51,7 +57,7 @@ urll_t new_url_list(graph_t g, handle_t cltn)
 }
 
 // update weighted page rank
-void setwpr(urll_t list, int id, int wpr)
+void setwpr(urll_t list, int id, double wpr)
 {
 	list->li[id]->wpr = wpr;
 }
