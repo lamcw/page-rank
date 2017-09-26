@@ -10,24 +10,6 @@
 #define SHOW_MTRX 1
 
 typedef struct _graph *graph_t;
-// use uchar to save memory when representing an "edge"
-// uchar == 1: has edge
-// uchar == 0: no edge
-typedef unsigned char uchar;
-typedef struct _graph {
-	// @nv - number of vertices
-	// @ne - number of edges
-	// @max_v - maximum number of vertices (not used in this adt)
-	// @max_e - maximum number of edges
-	int nv;
-	int ne;
-	int max_v;
-	int max_e;
-	// @vertex - vertex name
-	// @edges - adj matrix
-	char **vertex;
-	uchar **edges;
-} graph;
 
 // Function signatures
 

@@ -21,10 +21,9 @@ int main(int argc, char **argv)
 
 	handle_t coll = parse("url/collection.txt");
 	graph_t g = get_graph(coll);
-	show_graph(g, 0);
-	show_graph(g, 1);
 
 	urll_t l = page_rank(g, coll, atof(argv[1]), atof(argv[2]), atoi(argv[3]));
+	output(l, "pagerankList.txt");
 	free_list(l);
 	free_handle(coll);
 	free_graph(g);
@@ -38,21 +37,21 @@ static graph_t get_graph(handle_t collection)
 	for (int i = 0; i < handle_size(collection); i++) {
 		// stores file path and file name
 		// e.g. url1234.txt
-		char *fname = malloc(strlen(collection->buf[i]) + 20);
+		char *fname = malloc(strlen(getbuf(collection, i)) + 20);
 		
 		if (fname == NULL) {
 			perror("malloc failed");
 			exit(EXIT_FAILURE);
 		}
 
-		sprintf(fname, "url/%s.txt", collection->buf[i]);
+		sprintf(fname, "url/%s.txt", getbuf(collection, i));
 		
 		// parse url?.txt
 		handle_t hd = parse_url(fname, "#start Section-1", "#end Section-1");
 		// for each link in url?.txt
 		// add edge from this url to that link
 		for (int j = 0; j < handle_size(hd); j++) {
-			add_edge(g, collection->buf[i], hd->buf[j]);
+			add_edge(g, getbuf(collection, i), getbuf(hd, j));
 		}
 
 		// free memory used in this for iteration
@@ -88,7 +87,9 @@ static urll_t page_rank(graph_t g,
 			// sum(PR(pj;t) * Win * Wout
 			double sum = 0;
 			for (int j = 0; j < size; j++)
-				sum += getwpr(li, j) * weight_in(g, url_to[j], i) * weight_out(g, url_to[j], i);
+				sum += getwpr(li, j) *
+					weight_in(g, url_to[j], i) *
+					weight_out(g, url_to[j], i);
 			// sum weight
 			wpr_list[i] = fterm + d * sum;
 			free(url_to);

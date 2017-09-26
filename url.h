@@ -9,9 +9,12 @@ typedef struct _url *url_t;
 // url list struct
 typedef struct _urll *urll_t;
 
-urll_t new_url_list(graph_t g, handle_t cltn);
+urll_t new_url_list(graph_t, handle_t);
 double getwpr(urll_t list, int id);
-void setwpr(urll_t list, int id, double wpr);
-void free_list(urll_t list);
+void setwpr(urll_t, int, double);
+void output(urll_t, char *);
+int *get_outlinks(urll_t, int);
+int *get_inlinks(urll_t, int);
+void free_list(urll_t);
 
 #endif

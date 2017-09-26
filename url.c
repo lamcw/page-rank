@@ -11,13 +11,13 @@ struct _url {
 	// url string
 	char *url;
 	// number of out going links
-	// int out_degree;
+	int out_degree;
 	// number of incoming links
-	// int in_degree;
+	int in_degree;
 	// contains incoming links to this url
-	// int *inlinks;
+	int *inlinks;
 	// contains outgoing links to url(s)
-	// int *outlinks;
+	int *outlinks;
 	// weighted pagerank value
 	double wpr;
 };
@@ -43,14 +43,14 @@ urll_t new_url_list(graph_t g, handle_t cltn)
 		// assign to var to make it more readable
 		url_t u = url_li->li[i];
 
-		u->url = malloc(strlen(cltn->buf[i]) + 1);
-		strcpy(u->url, cltn->buf[i]);
+		u->url = malloc(strlen(getbuf(cltn, i)) + 1);
+		strcpy(u->url, getbuf(cltn, i));
 
-		//u->out_degree = outdegree(g, i);
-		//u->in_degree = indegree(g, i);
-		//u->outlinks = nodes_to(g, i, &u->out_degree);
-		//u->inlinks = nodes_from(g, i, &u->in_degree);
-		u->wpr = (double)1 / cltn->size;
+		u->out_degree = outdegree(g, i);
+		u->in_degree = indegree(g, i);
+		u->outlinks = nodes_to(g, i, &u->out_degree);
+		u->inlinks = nodes_from(g, i, &u->in_degree);
+		u->wpr = (double)1 / handle_size(cltn);
 	}
 
 	return url_li;
@@ -67,7 +67,7 @@ double getwpr(urll_t list, int id)
 	return list->li[id]->wpr;
 }
 
-/*int *get_outlinks(urll_t list, int id)
+int *get_outlinks(urll_t list, int id)
 {
 	return list->li[id]->outlinks;
 }
@@ -75,16 +75,37 @@ double getwpr(urll_t list, int id)
 int *get_inlinks(urll_t list, int id)
 {
 	return list->li[id]->inlinks;
-}*/
+}
 
 void free_list(urll_t list)
 {
 	for (int i = 0; i < list->size; i++) {
 		free(list->li[i]->url);
-		//free(list->li[i]->inlinks);
-		//free(list->li[i]->outlinks);
+		free(list->li[i]->inlinks);
+		free(list->li[i]->outlinks);
 		free(list->li[i]);
 	}
 	free(list->li);
 	free(list);
 }
+
+int _cmp_wpr(const void *a, const void *b)
+{
+	url_t *ia = (url_t *)a;
+	url_t *ib = (url_t *)b;
+	return (*ia)->wpr < (*ib)->wpr;
+}
+
+void output(urll_t list, char *path)
+{
+	FILE *fp = fopen(path, "w");
+
+	qsort(list->li, list->size, sizeof(url_t), _cmp_wpr);
+
+	for (int i = 0; i < list->size; i++)
+		fprintf(fp, "%s, %d, %.8f\n", 
+				list->li[i]->url,
+				list->li[i]->out_degree,
+				list->li[i]->wpr);
+	fclose(fp);
+}	

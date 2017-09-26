@@ -14,6 +14,25 @@
 	}
 #endif
 
+// use uchar to save memory when representing an "edge"
+// uchar == 1: has edge
+// uchar == 0: no edge
+typedef unsigned char uchar;
+struct _graph {
+	// @nv - number of vertices
+	// @ne - number of edges
+	// @max_v - maximum number of vertices (not used in this adt)
+	// @max_e - maximum number of edges
+	int nv;
+	int ne;
+	int max_v;
+	int max_e;
+	// @vertex - vertex name
+	// @edges - adj matrix
+	char **vertex;
+	uchar **edges;
+};
+
 static int get_vertex_id(graph_t , char *);
 static int add_vertex(graph_t, char *);
 static void add_mtrx_size(graph_t g);
