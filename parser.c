@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <assert.h>
 
 #include "parser.h"
@@ -10,6 +11,8 @@
 static void add_size(handle_t);
 static FILE *open_file(char *, char *);
 static handle_t new_handle(void);
+static char *str_lower(char *str);
+static void rmoccur(char *str, char c);
 
 struct _handle {
 	int size;
@@ -126,16 +129,53 @@ void free_handle(handle_t h)
 
 void print_handle(handle_t h)
 {
+	assert(h);
 	for (int i = 0; i < h->size; i++)
 		printf("%s\n", h->buf[i]);
 }
 
 char *getbuf(handle_t h, int id)
 {
+	assert(h);
 	return h->buf[id];
 }
 
 int handle_size(handle_t h)
 {
+	assert(h);
 	return h->size;
+}
+
+static char *str_lower(char *str)
+{
+	int i = 0;
+	while (str[i]) {
+		// cast to unsigned char to avoid non-English character that
+		// leads to undefined behavior
+		str[i] = tolower((unsigned char)str[i]);
+		i++;
+	}
+	return str;
+}
+
+static void rmoccur(char *str, char c)
+{
+	// replace first occurance of @c with null terminating char
+	for (char *p = str; *p; ++p)
+		if (*p != c) *str++ = *p;
+	*str = '\0';
+}
+
+void normalise(handle_t h)
+{
+	assert(h);
+	// characters to be removed from a string
+	const char *rm = ".,;?";
+
+	print_handle(h);
+	for (int i = 0; i < h->size; i++) {
+		str_lower(h->buf[i]);
+		for (int j = 0; j < (int)strlen(rm); j++)
+			rmoccur(h->buf[i], rm[j]);
+	}
 }

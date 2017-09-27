@@ -3,8 +3,9 @@
 #include <string.h>
 #include <math.h>
 
-#include "pagerank.h"
 #include "url.h"
+#include "graph.h"
+#include "parser.h"
 
 static urll_t page_rank(graph_t, handle_t, double, double, int);
 static graph_t get_graph(handle_t);
@@ -19,13 +20,13 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	handle_t coll = parse("url/collection.txt");
-	graph_t g = get_graph(coll);
+	handle_t cltn = parse("url/collection.txt");
+	graph_t g = get_graph(cltn);
 
-	urll_t l = page_rank(g, coll, atof(argv[1]), atof(argv[2]), atoi(argv[3]));
+	urll_t l = page_rank(g, cltn, atof(argv[1]), atof(argv[2]), atoi(argv[3]));
 	output(l, "pagerankList.txt");
 	free_list(l);
-	free_handle(coll);
+	free_handle(cltn);
 	free_graph(g);
 	return 0;
 }

@@ -9,5 +9,6 @@ void free_handle(handle_t);
 void print_handle(handle_t);
 char *getbuf(handle_t h, int id);
 int handle_size(handle_t);
+void normalise(handle_t);
 
 #endif

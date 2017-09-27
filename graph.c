@@ -141,6 +141,7 @@ int nvertices(graph_t g)
 // self loop)
 int outdegree(graph_t g, int id)
 {
+	assert(g);
 	int count = 0;
 	for (int i = 0; i < g->ne; i++)
 		if (g->edges[id][i] && i != id) count++;
@@ -151,6 +152,7 @@ int outdegree(graph_t g, int id)
 // self loop)
 int indegree(graph_t g, int id)
 {
+	assert(g);
 	int count = 0;
 	for (int i = 0; i < g->ne; i++)
 		if (g->edges[i][id] && i != id) count++;
@@ -160,6 +162,7 @@ int indegree(graph_t g, int id)
 // return a list of node id(s) that has outlink to @id
 int *nodes_to(graph_t g, int id, int *size)
 {
+	assert(g);
 	int *list = malloc(g->ne * sizeof(int));
 	DUMP_ERR(list, "malloc failed");
 	*size = 0;
@@ -182,6 +185,7 @@ int *nodes_to(graph_t g, int id, int *size)
 // return a list of node id(s) that has inlinks from @id
 int *nodes_from(graph_t g, int id, int *size)
 {
+	assert(g);
 	int *list = malloc(g->ne * sizeof(int));
 	DUMP_ERR(list, "malloc failed");
 	*size = 0;
@@ -229,11 +233,13 @@ void show_graph(graph_t g, int mode)
 
 char *id_to_name(graph_t g, int id)
 {
+	assert(g);
 	return g->vertex[id];
 }
 
 static int get_vertex_id(graph_t g, char *name)
 {
+	assert(g);
 	for (int i = 0; i < g->nv; i++)
 		if (strcmp(name, g->vertex[i]) == 0) return i;
 	return -1;
@@ -241,6 +247,7 @@ static int get_vertex_id(graph_t g, char *name)
 
 static int add_vertex(graph_t g, char *name)
 {
+	assert(g);
 	assert(strlen(name) > 0);
 	char **tmp = realloc(g->vertex, (g->nv + 1) * sizeof(char *));
 
