@@ -14,6 +14,7 @@
 	}
 #endif
 
+// default array size for invindex_t tokens
 #define DEFAULT_SIZE 30
 
 struct _invurl {
@@ -36,6 +37,12 @@ static void sort_tok(invindex_t ind);
 static void add_urls_size(invurl_t u);
 static void add_tokens_size(invindex_t ind);
 
+/*
+ * newindex - create an invindex adt
+ * invindex_t is typedef'd in invindex.h
+ * The struct wraps an array of invurl_t and the @size and @max_size of
+ * the array
+ */
 invindex_t newindex(void) {
 	invindex_t new = malloc(sizeof(struct _invindex));
 	DUMP_ERR(new, "malloc failed");
@@ -64,6 +71,8 @@ int _url_cmp(const void *a, const void *b)
 	return strcmp(*(char **)a, *(char **)b);
 }
 
+// wrapper for qsort
+// sorts only u->urls
 static void sort_url(invurl_t u)
 {
 	qsort(u->urls, u->count, sizeof(char *), _url_cmp);
@@ -76,12 +85,19 @@ int _tok_cmp(const void *a, const void *b)
 	return strcmp((*ia)->word, (*ib)->word);
 }
 
+// wrapper for qsort
+// sorts only invindex_t tokens
 static void sort_tok(invindex_t ind)
 {
 	qsort(ind->tokens, ind->size, sizeof(invurl_t), _tok_cmp);
 }
 
-// increase invurl_t->urls' size by a quarter
+/* add_urls_size - realloc url array
+ * @u: an invurl_t struct that stores url array to be realloc'd
+ *
+ * This function increase the size of the array by a factor of 1.25
+ * and update the maximum size of the array and pointer values respectively
+ */
 static void add_urls_size(invurl_t u)
 {
 	assert(u);
@@ -162,8 +178,11 @@ static void add_tokens_size(invindex_t ind)
 	}
 }
 
+// print the structure of invindex_t
+// for debugging
 void show_index(invindex_t ind)
 {
+	assert(ind);
 	for (int i = 0; i < ind->size; i++) {
 		printf("%s: ", ind->tokens[i]->word);
 		for (int j = 0; j < ind->tokens[i]->count; j++)
@@ -172,6 +191,7 @@ void show_index(invindex_t ind)
 	}
 }
 
+// free all memory
 void free_index(invindex_t ind)
 {
 	assert(ind);
@@ -188,6 +208,7 @@ void free_index(invindex_t ind)
 
 void output_index(invindex_t ind, char *path)
 {
+	assert(ind);
 	FILE *fp = fopen(path, "w");
 
 	for (int i = 0; i < ind->size; i++) {
