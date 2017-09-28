@@ -21,7 +21,7 @@ typedef unsigned char uchar;
 struct _graph {
 	// @nv - number of vertices
 	// @ne - number of edges
-	// @max_v - maximum number of vertices (not used in this adt)
+	// @max_v - maximum number of vertices (not used)
 	// @max_e - maximum number of edges
 	int nv;
 	int ne;
