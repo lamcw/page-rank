@@ -8,18 +8,12 @@
 
 // internal definition of url
 struct _url {
-	// url string
-	char *url;
-	// number of out going links
-	int out_degree;
-	// number of incoming links
-	int in_degree;
-	// contains incoming links to this url
-	int *inlinks;
-	// contains outgoing links to url(s)
-	int *outlinks;
-	// weighted pagerank value
-	double wpr;
+	char *url;	// url string
+	int out_degree;	// number of out going links
+	int in_degree;	// number of incoming links
+	int *inlinks;	// contains incoming links to this url
+	int *outlinks;	// contains outgoing links to url(s)
+	double wpr;	// weighted pagerank value
 };
 
 // url struct LIST

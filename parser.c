@@ -36,7 +36,7 @@ static FILE *open_file(char *path, char *mode)
 
 static handle_t new_handle(void)
 {
-	handle_t h = (handle_t)malloc(sizeof(struct _handle));
+	handle_t h = malloc(sizeof(struct _handle));
 	assert(h);
 	h->buf = NULL;
 	h->size = h->max_size = 0;
@@ -84,7 +84,7 @@ handle_t parse_url(char *path, char *start_tag, char *end_tag)
 			char *token = strtok(buf, " ");
 
 			while (token != NULL) {
-				h->buf[h->size] = (char *)malloc(strlen(token) + 1);
+				h->buf[h->size] = malloc(strlen(token) + 1);
 				strcpy(h->buf[h->size], token);
 				h->size++;
 				if (h->size >= h->max_size) add_size(h);
@@ -107,7 +107,7 @@ static void add_size(handle_t h)
 	assert(h);
 	// doubles the original size
 	int new_size = h->size == 0 ? 1 : 2 * h->size;
-	char **tmp = (char **)realloc(h->buf, new_size * sizeof(char *));
+	char **tmp = realloc(h->buf, new_size * sizeof(char *));
 
 	if (tmp) {
 		h->buf = tmp;
@@ -172,7 +172,6 @@ void normalise(handle_t h)
 	// characters to be removed from a string
 	const char *rm = ".,;?";
 
-	print_handle(h);
 	for (int i = 0; i < h->size; i++) {
 		str_lower(h->buf[i]);
 		for (int j = 0; j < (int)strlen(rm); j++)
