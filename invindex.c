@@ -138,21 +138,19 @@ void add_entry(invindex_t ind, char *word, char *url)
 	key->word = malloc(strlen(word) + 1);
 	strcpy(key->word, word);
 	// check if word is in invindex
+	sort_tok(ind);
 	invurl_t *tok = bsearch(&key, ind->tokens, ind->size, \
 				sizeof(invurl_t), _tok_cmp);
 	free(key->word);
 	free(key);
-
 	// found
 	if (tok) {
 		add_url(*tok, url);
-		sort_tok(ind);
 	} else {
 		// add to a new token
 		ind->tokens[ind->size]->word = malloc(strlen(word) + 1);
 		strcpy(ind->tokens[ind->size]->word, word);
 		add_url(ind->tokens[ind->size], url);
-		sort_tok(ind);
 		ind->size++;
 		if (ind->size >= ind->max_size) add_tokens_size(ind);
 	}
@@ -218,4 +216,32 @@ void output_index(invindex_t ind, char *path)
 		fputc('\n', fp);
 	}
 	fclose(fp);
+}
+
+invindex_t read_index(char *path)
+{
+	FILE *fp = fopen(path, "r");
+	DUMP_ERR(fp, "Cannot open file");
+
+	invindex_t ind = newindex();
+	char *buf;
+
+	while (fscanf(fp, "%m[^\n]\n", &buf) != EOF) {
+		char *token = strtok(buf, " ");
+		char *key = malloc(strlen(token) + 1);
+		int add_url = 0;
+		strcpy(key, token);
+
+		while (token) {
+			if (add_url) add_entry(ind, key, token);
+			token = strtok(NULL, " ");
+			add_url = 1;
+		}
+
+		free(key);
+		free(buf);
+	}
+
+	fclose(fp);
+	return ind;
 }

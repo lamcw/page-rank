@@ -9,6 +9,7 @@ typedef struct _invurl *invurl_t;
 typedef struct _invindex *invindex_t;
 
 invindex_t newindex(void);
+invindex_t read_index(char *);
 void add_entry(invindex_t, char *, char *);
 void show_index(invindex_t ind);
 void output_index(invindex_t ind, char*);

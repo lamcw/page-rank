@@ -97,7 +97,7 @@ void output(urll_t list, char *path)
 	qsort(list->li, list->size, sizeof(url_t), _cmp_wpr);
 
 	for (int i = 0; i < list->size; i++)
-		fprintf(fp, "%s, %d, %.8f\n", 
+		fprintf(fp, "%s, %d, %.7f\n", 
 				list->li[i]->url,
 				list->li[i]->out_degree,
 				list->li[i]->wpr);
