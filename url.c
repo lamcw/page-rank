@@ -42,8 +42,8 @@ urll_t new_url_list(graph_t g, handle_t cltn)
 
 		u->out_degree = outdegree(g, i);
 		u->in_degree = indegree(g, i);
-		u->outlinks = nodes_to(g, i, &u->out_degree);
-		u->inlinks = nodes_from(g, i, &u->in_degree);
+		/* u->outlinks = nodes_to(g, i, &u->out_degree); */
+		/* u->inlinks = nodes_from(g, i, &u->in_degree); */
 		u->wpr = (double)1 / handle_size(cltn);
 	}
 
@@ -75,8 +75,8 @@ void free_list(urll_t list)
 {
 	for (int i = 0; i < list->size; i++) {
 		free(list->li[i]->url);
-		free(list->li[i]->inlinks);
-		free(list->li[i]->outlinks);
+		/* free(list->li[i]->inlinks); */
+		/* free(list->li[i]->outlinks); */
 		free(list->li[i]);
 	}
 	free(list->li);
@@ -102,4 +102,4 @@ void output(urll_t list, char *path)
 				list->li[i]->out_degree,
 				list->li[i]->wpr);
 	fclose(fp);
-}	
+}

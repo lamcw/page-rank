@@ -63,20 +63,20 @@ static graph_t get_graph(handle_t collection)
 	return g;
 }
 
-static urll_t page_rank(graph_t g,
-			handle_t cltn,
-			double d,
-			double diff_pr,
-			int max_iter)
+static urll_t page_rank(const graph_t g,
+			const handle_t cltn,
+			const double d,
+			const double diff_pr,
+			const int max_iter)
 {
 	urll_t li = new_url_list(g, cltn);
 	int iter = 0;
 	double diff = diff_pr;
-	//return li;
 
 	// first term in the formula
 	const double fterm = (1 - d) / handle_size(cltn);
 	while (iter < max_iter && diff >= diff_pr) {
+		diff = 0;
 		iter++;
 		// stores new wpr value
 		double *wpr_list = calloc(handle_size(cltn), sizeof(double));
@@ -88,7 +88,7 @@ static urll_t page_rank(graph_t g,
 			// sum(PR(pj;t) * Win * Wout
 			double sum = 0;
 			for (int j = 0; j < size; j++)
-				sum += getwpr(li, j) *
+				sum += getwpr(li, url_to[j]) *
 					weight_in(g, url_to[j], i) *
 					weight_out(g, url_to[j], i);
 			// sum weight
