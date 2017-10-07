@@ -16,5 +16,6 @@ void output(urll_t, char *);
 int *get_outlinks(urll_t, int);
 int *get_inlinks(urll_t, int);
 void free_list(urll_t);
+void show_list(urll_t);
 
 #endif

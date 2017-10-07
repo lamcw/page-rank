@@ -33,7 +33,6 @@ struct _graph {
 	uchar **edges;
 };
 
-static int get_vertex_id(graph_t , char *);
 static int add_vertex(graph_t, char *);
 static void add_mtrx_size(graph_t g);
 
@@ -114,7 +113,9 @@ int add_edge(graph_t g, char *src, char *dest)
 		w = add_vertex(g, dest);
 	}
 
-	g->edges[v][w] = 1;
+	// prevent self loop
+	if (v != w)
+		g->edges[v][w] = 1;
 	return 1;
 }
 
@@ -216,6 +217,7 @@ void show_graph(graph_t g, int mode)
 
 		for (int i = 0; i < g->nv; i++) {
 			if (mode == SHOW_MTRX) {
+				printf("%s ", id_to_name(g, i));
 				for (int j = 0; j < g->nv; j++)
 					printf("%d", g->edges[i][j]);
 				putchar('\n');
@@ -237,7 +239,7 @@ char *id_to_name(graph_t g, int id)
 	return g->vertex[id];
 }
 
-static int get_vertex_id(graph_t g, char *name)
+int get_vertex_id(graph_t g, char *name)
 {
 	assert(g);
 	for (int i = 0; i < g->nv; i++)

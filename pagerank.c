@@ -35,6 +35,14 @@ static graph_t get_graph(handle_t collection)
 {
 	graph_t g = new_graph();
 
+	// add url first then add links to make the graph looks the same to
+	// the one in the examples
+	//
+	// this for loop is originally not needed but added to make debugging
+	// easier
+	for (int i = 0; i < handle_size(collection); i++)
+		add_edge(g, getbuf(collection, i), getbuf(collection, i));
+
 	for (int i = 0; i < handle_size(collection); i++) {
 		// stores file path and file name
 		// e.g. url1234.txt
@@ -127,8 +135,10 @@ static double weight_out(graph_t g, int pj, int pi)
 	int size = 0;
 	int *urls = nodes_from(g, pj, &size);
 
-	for (int i = 0; i < size; i++)
-		sum += outdegree(g, urls[i]);
+	for (int i = 0; i < size; i++) {
+		double deg = outdegree(g, urls[i]);
+		sum += deg == 0 ? 0.5 : deg;
+	}
 	free(urls);
 
 	return deg_pi / sum;

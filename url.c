@@ -40,8 +40,8 @@ urll_t new_url_list(graph_t g, handle_t cltn)
 		u->url = malloc(strlen(getbuf(cltn, i)) + 1);
 		strcpy(u->url, getbuf(cltn, i));
 
-		u->out_degree = outdegree(g, i);
-		u->in_degree = indegree(g, i);
+		u->out_degree = outdegree(g, get_vertex_id(g, u->url));
+		u->in_degree = indegree(g, get_vertex_id(g, u->url));
 		/* u->outlinks = nodes_to(g, i, &u->out_degree); */
 		/* u->inlinks = nodes_from(g, i, &u->in_degree); */
 		u->wpr = (double)1 / handle_size(cltn);
@@ -61,15 +61,15 @@ double getwpr(urll_t list, int id)
 	return list->li[id]->wpr;
 }
 
-int *get_outlinks(urll_t list, int id)
-{
-	return list->li[id]->outlinks;
-}
+/* int *get_outlinks(urll_t list, int id) */
+/* { */
+/* 	return list->li[id]->outlinks; */
+/* } */
 
-int *get_inlinks(urll_t list, int id)
-{
-	return list->li[id]->inlinks;
-}
+/* int *get_inlinks(urll_t list, int id) */
+/* { */
+/* 	return list->li[id]->inlinks; */
+/* } */
 
 void free_list(urll_t list)
 {
@@ -102,4 +102,10 @@ void output(urll_t list, char *path)
 				list->li[i]->out_degree,
 				list->li[i]->wpr);
 	fclose(fp);
+}
+
+void show_list(urll_t list)
+{
+	for (int i = 0; i < list->size; i++)
+		printf("%s %d %.7f\n", list->li[i]->url, list->li[i]->out_degree, list->li[i]->wpr);
 }

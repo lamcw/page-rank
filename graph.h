@@ -21,6 +21,7 @@ int outdegree(graph_t, int);
 int indegree(graph_t, int);
 int *nodes_to(graph_t, int, int *);
 int *nodes_from(graph_t, int, int *);
+int get_vertex_id(graph_t, char *);
 char *id_to_name(graph_t, int);
 int is_connected(graph_t, char *, char *);
 void show_graph(graph_t, int);
