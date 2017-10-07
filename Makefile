@@ -3,7 +3,7 @@ CFLAGS= -Wall -Werror -g -std=c11
 
 all: pagerank inverted searchPagerank
 
-searchPagerank: searchPagerank.c parser.o invindex.o
+searchPagerank: searchPagerank.c invindex.o urltable.o
 
 pagerank: pagerank.c parser.o graph.o url.o
 
@@ -16,6 +16,8 @@ graph.o: graph.c graph.h
 url.o: url.c url.h
 
 invindex.o: invindex.c invindex.h
+
+urltable.o: urltable.c urltable.h
 
 clean:
 	rm -f *.o pagerank inverted searchPagerank *.dSYM

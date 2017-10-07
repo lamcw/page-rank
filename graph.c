@@ -33,7 +33,7 @@ struct _graph {
 	uchar **edges;
 };
 
-static int get_vertex_id(graph_t g, char *name);
+static int get_vertex_id(graph_t, char *);
 static int add_vertex(graph_t, char *);
 static void add_mtrx_size(graph_t g);
 

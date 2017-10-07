@@ -36,6 +36,7 @@ static void sort_url(invurl_t u);
 static void sort_tok(invindex_t ind);
 static void add_urls_size(invurl_t u);
 static void add_tokens_size(invindex_t ind);
+static invurl_t *search_tok(invindex_t ind, char *word);
 
 /*
  * newindex - create an invindex adt
@@ -134,16 +135,7 @@ void add_entry(invindex_t ind, char *word, char *url)
 	assert(ind);
 	assert(word && url);
 
-	// create an target struct
-	invurl_t key = malloc(sizeof(struct _invurl));
-	key->word = malloc(strlen(word) + 1);
-	strcpy(key->word, word);
-	// check if word is in invindex
-	sort_tok(ind);
-	invurl_t *tok = bsearch(&key, ind->tokens, ind->size, \
-				sizeof(invurl_t), _tok_cmp);
-	free(key->word);
-	free(key);
+	invurl_t *tok = search_tok(ind, word);
 	// found
 	if (tok) {
 		add_url(*tok, url);
@@ -246,4 +238,39 @@ invindex_t read_index(char *path)
 
 	fclose(fp);
 	return ind;
+}
+
+static invurl_t *search_tok(invindex_t ind, char *word)
+{
+	assert(ind);
+	assert(word);
+
+	// create an target struct
+	invurl_t key = malloc(sizeof(struct _invurl));
+	key->word = malloc(strlen(word) + 1);
+	strcpy(key->word, word);
+	// check if word is in invindex
+	sort_tok(ind);
+	invurl_t *tok = bsearch(&key, ind->tokens, ind->size, \
+				sizeof(invurl_t), _tok_cmp);
+	free(key->word);
+	free(key);
+
+	return tok;
+}
+
+char **url_for(invindex_t ind, char *word, int *size)
+{
+	assert(ind);
+
+	invurl_t *tok = search_tok(ind, word);
+	if (tok) {
+		*size = (*tok)->count;
+		return (*tok)->urls;
+	} else {
+		// not found
+		// array size is 0
+		*size = 0;
+		return NULL;
+	}
 }
