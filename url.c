@@ -40,8 +40,8 @@ urll_t new_url_list(graph_t g, handle_t cltn)
 		u->url = malloc(strlen(getbuf(cltn, i)) + 1);
 		strcpy(u->url, getbuf(cltn, i));
 
-		u->out_degree = outdegree(g, get_vertex_id(g, u->url));
-		u->in_degree = indegree(g, get_vertex_id(g, u->url));
+		u->out_degree = outdegree(g, i);
+		u->in_degree = indegree(g, i);
 		/* u->outlinks = nodes_to(g, i, &u->out_degree); */
 		/* u->inlinks = nodes_from(g, i, &u->in_degree); */
 		u->wpr = (double)1 / handle_size(cltn);

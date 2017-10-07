@@ -33,6 +33,7 @@ struct _graph {
 	uchar **edges;
 };
 
+static int get_vertex_id(graph_t g, char *name);
 static int add_vertex(graph_t, char *);
 static void add_mtrx_size(graph_t g);
 
@@ -239,7 +240,7 @@ char *id_to_name(graph_t g, int id)
 	return g->vertex[id];
 }
 
-int get_vertex_id(graph_t g, char *name)
+static int get_vertex_id(graph_t g, char *name)
 {
 	assert(g);
 	for (int i = 0; i < g->nv; i++)
