@@ -209,6 +209,7 @@ void print_arr(url_t *arr, int size)
 {
 	for (int i = 0; i < size; i++)
 		printf("%s(%d) ", arr[i]->url, arr[i]->count);
+	putchar('\n');
 }
 
 void free_table_arr(url_t *arr, int size)
