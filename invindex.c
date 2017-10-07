@@ -117,13 +117,14 @@ static void add_url(invurl_t tok, char *url)
 	assert(tok && url);
 
 	// search for duplicated urls
+	sort_url(tok);
 	char **result = bsearch(&url, tok->urls, tok->count, \
 				sizeof(char *), _url_cmp);
 	if (!result) {
 		tok->urls[tok->count] = malloc(strlen(url) + 1);
 		strcpy(tok->urls[tok->count], url);
-		sort_url(tok);
 		tok->count++;
+		sort_url(tok);
 		if (tok->count >= tok->maxurl) add_urls_size(tok);
 	}
 }
@@ -152,6 +153,7 @@ void add_entry(invindex_t ind, char *word, char *url)
 		strcpy(ind->tokens[ind->size]->word, word);
 		add_url(ind->tokens[ind->size], url);
 		ind->size++;
+		sort_tok(ind);
 		if (ind->size >= ind->max_size) add_tokens_size(ind);
 	}
 }
