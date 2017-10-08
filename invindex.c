@@ -130,6 +130,7 @@ static void add_url(invurl_t tok, char *url)
 	}
 }
 
+// insert an entry into the index
 void add_entry(invindex_t ind, char *word, char *url)
 {
 	assert(ind);
@@ -145,6 +146,7 @@ void add_entry(invindex_t ind, char *word, char *url)
 		strcpy(ind->tokens[ind->size]->word, word);
 		add_url(ind->tokens[ind->size], url);
 		ind->size++;
+		// sort before leaving the function
 		sort_tok(ind);
 		if (ind->size >= ind->max_size) add_tokens_size(ind);
 	}
@@ -162,6 +164,7 @@ static void add_tokens_size(invindex_t ind)
 
 	for (int i = ind->size; i < new_size; i++) {
 		ind->tokens[i] = malloc(sizeof(struct _invurl));
+		// init struct
 		ind->tokens[i]->word = NULL;
 		ind->tokens[i]->urls = NULL;
 		ind->tokens[i]->count = 0;
@@ -212,6 +215,7 @@ void output_index(invindex_t ind, char *path)
 	fclose(fp);
 }
 
+// read file content into an invindex_t
 invindex_t read_index(char *path)
 {
 	FILE *fp = fopen(path, "r");
@@ -221,10 +225,13 @@ invindex_t read_index(char *path)
 	char *buf;
 
 	while (fscanf(fp, "%m[^\n]\n", &buf) != EOF) {
+		// split by space
 		char *token = strtok(buf, " ");
+		// copy token to key
 		char *key = malloc(strlen(token) + 1);
-		int add_url = 0;
 		strcpy(key, token);
+		// use this variable to skip reading the keyword
+		int add_url = 0;
 
 		while (token) {
 			if (add_url) add_entry(ind, key, token);
@@ -259,6 +266,7 @@ static invurl_t *search_tok(invindex_t ind, char *word)
 	return tok;
 }
 
+// return a url list for @word
 char **url_for(invindex_t ind, char *word, int *size)
 {
 	assert(ind);

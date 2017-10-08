@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	const int nquery = argc - 1;
+	int nquery = argc - 1;
 	char **query = &argv[1];
 
 	invindex_t in = read_index("invertedIndex.txt");
@@ -33,7 +33,10 @@ int main(int argc, char **argv)
 		int row_size = 0;
 		char **urls = url_for(in, query[i], &row_size);
 		// batch insert url
-		insert_many(t, i, urls, row_size);
+		if (urls)
+			insert_many(t, i, urls, row_size);
+		else
+			nquery--;
 	}
 	set_count(t);
 
@@ -60,8 +63,7 @@ int main(int argc, char **argv)
 static void print_sorted_pr(pr_t *arr, int arr_size, url_t *url, int urlsize)
 {
 	for (int i = 0; i < arr_size; i++) {
-		int result = get_url_id(url, urlsize, arr[i].url);
-		if (result != -1)
+		if (in_arr(url, urlsize, arr[i].url))
 			printf("%s\n", arr[i].url);
 	}
 }
