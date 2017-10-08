@@ -31,11 +31,13 @@ int main(int argc, char **argv)
 	for (int i = 0; i < nquery; i++) {
 		int row_size = 0;
 		char **urls = url_for(in, query[i], &row_size);
+		// batch insert url
 		insert_many(t, i, urls, row_size);
 	}
 	set_count(t);
 
 	int urlsize = 0;
+	// merge table rows into one array
 	url_t *arr = table_to_arr(t, &urlsize);
 	int pr_size = 0;
 	pr_t *pr = parse_pr("pagerankList.txt", &pr_size);
@@ -47,6 +49,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+// count number of lines in file
 static int count_lines(FILE *f)
 {
 	int lines = 0;
@@ -87,14 +90,17 @@ static pr_t *parse_pr(char *path, int *size)
 	while (fscanf(fp, "%m[^,],%d,%lf\n", &(arr[i].url), &tmp, &(arr[i].pr)) != EOF)
 		i++;
 
-	/* for (int i = 0; i < *size; i++) */
-	/* 	printf("%s %.7lf\n", arr[i].url, arr[i].pr); */
+	// in the end arr has one empty element at the back of the array
+	// i can choose to realloc the array here but it seems pretty
+	// unnecessary to do so
+
 	fclose(fp);
 	return arr;
 }
 
 static void free_pr(pr_t *arr, int size)
 {
+	// is i < size because the last url in struct is NULL
 	for (int i = 0; i < size; i++) {
 		free(arr[i].url);
 	}
