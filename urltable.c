@@ -205,6 +205,37 @@ url_t *table_to_arr(urltable_t t, int *size)
 	return arr;
 }
 
+url_t *partition_arr(url_t *arr, int size, int urlcount, int *sub_arr_size)
+{
+	int start = -1;
+	int end = -1;
+
+	int i = 0;
+	while (i < size) {
+		// array starts here
+		if (arr[i]->count == urlcount && start == -1)
+			start = i;
+		// array ends here
+		if (arr[i]->count != urlcount && start >= 0 && end == -1) {
+			end = i;
+			break;
+		}
+		i++;
+	}
+
+	// count not found
+	if (start == -1)
+		return NULL;
+	// index overruns (i.e. copy till the end of array)
+	if (end == -1)
+		end = size;
+
+	*sub_arr_size = end - start;
+	url_t *ret = malloc(*sub_arr_size * sizeof(url_t));
+	memcpy(ret, &arr[start], *sub_arr_size * sizeof(url_t));
+	return ret;
+}
+
 void print_arr(url_t *arr, int size)
 {
 	for (int i = 0; i < size; i++)

@@ -9,8 +9,9 @@ void insert_many(urltable_t, int, char **, int);
 void show_table(urltable_t);
 void free_table(urltable_t);
 void set_count(urltable_t t);
-url_t *table_to_arr(urltable_t t, int *size);
+url_t *table_to_arr(urltable_t, int *);
+url_t *partition_arr(url_t *, int, int, int *);
 void print_arr(url_t *, int);
-void free_table_arr(url_t *arr, int size);
+void free_table_arr(url_t *, int);
 
 #endif

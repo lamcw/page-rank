@@ -38,12 +38,12 @@ int main(int argc, char **argv)
 
 	int urlsize = 0;
 	// merge table rows into one array
-	url_t *arr = table_to_arr(t, &urlsize);
+	url_t *url = table_to_arr(t, &urlsize);
 	int pr_size = 0;
 	pr_t *pr = parse_pr("pagerankList.txt", &pr_size);
 
 	free_pr(pr, pr_size);
-	free_table_arr(arr, urlsize);
+	free_table_arr(url, urlsize);
 	free_table(t);
 	free_index(in);
 	return 0;
