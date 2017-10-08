@@ -62,9 +62,12 @@ int main(int argc, char **argv)
 
 static void print_sorted_pr(pr_t *arr, int arr_size, url_t *url, int urlsize)
 {
+	static int line_count = 0;
 	for (int i = 0; i < arr_size; i++) {
-		if (in_arr(url, urlsize, arr[i].url))
+		if (in_arr(url, urlsize, arr[i].url) && line_count < 30) {
 			printf("%s\n", arr[i].url);
+			line_count++;
+		}
 	}
 }
 
