@@ -14,6 +14,7 @@ typedef struct _pr {
 static int count_lines(FILE *f);
 static pr_t *parse_pr(char *path, int *size);
 static void free_pr(pr_t *arr, int size);
+static void print_sorted_pr(pr_t *, int, url_t *, int);
 
 int main(int argc, char **argv)
 {
@@ -42,11 +43,27 @@ int main(int argc, char **argv)
 	int pr_size = 0;
 	pr_t *pr = parse_pr("pagerankList.txt", &pr_size);
 
+	for (int i = nquery; i > 0; i--) {
+		int subarr_size = 0;
+		url_t *subarr = partition_arr(url, urlsize, i, &subarr_size);
+		print_sorted_pr(pr, pr_size, subarr, subarr_size);
+		free(subarr);
+	}
+
 	free_pr(pr, pr_size);
 	free_table_arr(url, urlsize);
 	free_table(t);
 	free_index(in);
 	return 0;
+}
+
+static void print_sorted_pr(pr_t *arr, int arr_size, url_t *url, int urlsize)
+{
+	for (int i = 0; i < arr_size; i++) {
+		int result = get_url_id(url, urlsize, arr[i].url);
+		if (result != -1)
+			printf("%s\n", arr[i].url);
+	}
 }
 
 // count number of lines in file

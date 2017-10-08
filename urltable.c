@@ -236,6 +236,14 @@ url_t *partition_arr(url_t *arr, int size, int urlcount, int *sub_arr_size)
 	return ret;
 }
 
+int get_url_id(url_t *url, int size, char *key)
+{
+	for (int i = 0; i < size; i++)
+		if (strcmp(url[i]->url, key) == 0)
+			return i;
+	return -1;
+}
+
 void print_arr(url_t *arr, int size)
 {
 	for (int i = 0; i < size; i++)
