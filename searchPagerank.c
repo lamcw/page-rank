@@ -64,7 +64,7 @@ static void print_sorted_pr(pr_t *arr, int arr_size, url_t *url, int urlsize)
 {
 	static int line_count = 0;
 	for (int i = 0; i < arr_size; i++) {
-		if (in_arr(url, urlsize, arr[i].url) && line_count < 30) {
+		if (line_count < 30 && in_arr(url, urlsize, arr[i].url)) {
 			printf("%s\n", arr[i].url);
 			line_count++;
 		}
