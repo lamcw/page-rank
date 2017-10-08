@@ -9,7 +9,7 @@
 #define SHOW_INDENT 0
 #define SHOW_MTRX 1
 
-typedef struct graph *graph_t;
+typedef struct _graph *graph_t;
 
 // Function signatures
 
@@ -17,8 +17,11 @@ graph_t new_graph(void);
 void free_graph(graph_t);
 int add_edge(graph_t ,char *, char *);
 int nvertices(graph_t);
-int outlink(graph_t, int);
-int inlink(graph_t, int);
+int outdegree(graph_t, int);
+int indegree(graph_t, int);
+int *nodes_to(graph_t, int, int *);
+int *nodes_from(graph_t, int, int *);
+char *id_to_name(graph_t, int);
 int is_connected(graph_t, char *, char *);
 void show_graph(graph_t, int);
 

@@ -1,13 +1,23 @@
 CC=gcc
-CFLAGS= -Wall -Werror -g -std=c11 -pg
-OBJS=parser.o graph.o
+CFLAGS= -Wall -Werror -g -std=c11
 
-pagerank: pagerank.o $(OBJS)
-	$(CC) $(CFLAGS) -o pagerank pagerank.c $(OBJS)
+all: pagerank inverted searchPagerank
+
+searchPagerank: searchPagerank.c invindex.o urltable.o
+
+pagerank: pagerank.c parser.o graph.o url.o
+
+inverted: inverted.c parser.o invindex.o
 
 parser.o: parser.c parser.h
 
 graph.o: graph.c graph.h
 
+url.o: url.c url.h
+
+invindex.o: invindex.c invindex.h
+
+urltable.o: urltable.c urltable.h
+
 clean:
-	rm -f *.o pagerank *.dSYM
+	rm -f *.o pagerank inverted searchPagerank *.dSYM

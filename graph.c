@@ -5,11 +5,12 @@
 
 #include "graph.h"
 
+// macro for dumping error messages
 #ifndef DUMP_ERR
-#define DUMP_ERR(ptr, str) \
-	if (ptr == NULL) {\
-		perror(str);\
-		exit(EXIT_FAILURE);\
+#define DUMP_ERR(ptr, str)				\
+	if (ptr == NULL) {				\
+		perror(str);				\
+		exit(EXIT_FAILURE);			\
 	}
 #endif
 
@@ -17,10 +18,10 @@
 // uchar == 1: has edge
 // uchar == 0: no edge
 typedef unsigned char uchar;
-typedef struct graph {
+struct _graph {
 	// @nv - number of vertices
 	// @ne - number of edges
-	// @max_v - maximum number of vertices (not used in this adt)
+	// @max_v - maximum number of vertices (not used)
 	// @max_e - maximum number of edges
 	int nv;
 	int ne;
@@ -30,16 +31,16 @@ typedef struct graph {
 	// @edges - adj matrix
 	char **vertex;
 	uchar **edges;
-} graph;
+};
 
-static int get_vertex_id(graph_t , char *);
+static int get_vertex_id(graph_t, char *);
 static int add_vertex(graph_t, char *);
 static void add_mtrx_size(graph_t g);
 
 // create empty graph
 graph_t new_graph(void)
 {
-	graph_t new = malloc(sizeof(graph));
+	graph_t new = malloc(sizeof(struct _graph));
 	assert(new);
 	
 	new->nv = new->max_v = 0;
@@ -113,7 +114,9 @@ int add_edge(graph_t g, char *src, char *dest)
 		w = add_vertex(g, dest);
 	}
 
-	g->edges[v][w] = 1;
+	// prevent self loop
+	if (v != w)
+		g->edges[v][w] = 1;
 	return 1;
 }
 
@@ -138,8 +141,9 @@ int nvertices(graph_t g)
 
 // count number of outgoing links of one node (doesnt count
 // self loop)
-int outlink(graph_t g, int id)
+int outdegree(graph_t g, int id)
 {
+	assert(g);
 	int count = 0;
 	for (int i = 0; i < g->ne; i++)
 		if (g->edges[id][i] && i != id) count++;
@@ -148,12 +152,60 @@ int outlink(graph_t g, int id)
 
 // count number of incoming links of one node (doesnt count
 // self loop)
-int inlink(graph_t g, int id)
+int indegree(graph_t g, int id)
 {
+	assert(g);
 	int count = 0;
 	for (int i = 0; i < g->ne; i++)
 		if (g->edges[i][id] && i != id) count++;
 	return count;
+}
+
+// return a list of node id(s) that has outlink to @id
+int *nodes_to(graph_t g, int id, int *size)
+{
+	assert(g);
+	int *list = malloc(g->ne * sizeof(int));
+	DUMP_ERR(list, "malloc failed");
+	*size = 0;
+
+	for (int i = 0; i < g->ne; i++) {
+		if (g->edges[i][id] && i != id)
+			list[(*size)++] = i;
+	}
+
+	// shrink size
+	if (*size) {
+		int *tmp = realloc(list, *size * sizeof(int));
+		DUMP_ERR(tmp, "realloc failed");
+		list = tmp;
+	}
+
+	return list;
+}
+
+// return a list of node id(s) that has inlinks from @id
+int *nodes_from(graph_t g, int id, int *size)
+{
+	assert(g);
+	int *list = malloc(g->ne * sizeof(int));
+	DUMP_ERR(list, "malloc failed");
+	*size = 0;
+
+	for (int i = 0; i < g->ne; i++) {
+		if (g->edges[id][i] && i != id) {
+			list[(*size)++] = i;
+		}
+	}
+
+	// shrink size
+	if (*size) {
+		int *tmp = realloc(list, *size * sizeof(int));
+		DUMP_ERR(tmp, "realloc failed");
+		list = tmp;
+	}
+
+	return list;
 }
 
 void show_graph(graph_t g, int mode)
@@ -163,8 +215,10 @@ void show_graph(graph_t g, int mode)
 		fprintf(stderr, "graph is empty\n");
 	else {
 		printf("graph has %d vertices:\n", g->nv);
+
 		for (int i = 0; i < g->nv; i++) {
 			if (mode == SHOW_MTRX) {
+				printf("%s ", id_to_name(g, i));
 				for (int j = 0; j < g->nv; j++)
 					printf("%d", g->edges[i][j]);
 				putchar('\n');
@@ -173,15 +227,22 @@ void show_graph(graph_t g, int mode)
 				printf("connects to\n");
 				for (int j = 0; j < g->nv; j++) {
 					if (g->edges[i][j])
-						printf("   %s\n", g->vertex[j]);
+						printf("\t%s\n", g->vertex[j]);
 				}
 			}
 		}
 	}
 }
 
+char *id_to_name(graph_t g, int id)
+{
+	assert(g);
+	return g->vertex[id];
+}
+
 static int get_vertex_id(graph_t g, char *name)
 {
+	assert(g);
 	for (int i = 0; i < g->nv; i++)
 		if (strcmp(name, g->vertex[i]) == 0) return i;
 	return -1;
@@ -189,6 +250,7 @@ static int get_vertex_id(graph_t g, char *name)
 
 static int add_vertex(graph_t g, char *name)
 {
+	assert(g);
 	assert(strlen(name) > 0);
 	char **tmp = realloc(g->vertex, (g->nv + 1) * sizeof(char *));
 
