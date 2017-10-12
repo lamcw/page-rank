@@ -1,7 +1,9 @@
 CC=gcc
-CFLAGS= -Wall -Werror -g -std=c11
+CFLAGS= -Wall -Werror -g -std=c11 -lm
 
-all: pagerank inverted searchPagerank
+all: pagerank inverted searchPagerank searchTfIdf
+
+searchTfIdf: searchTfIdf.c invindex.o parser.o
 
 searchPagerank: searchPagerank.c invindex.o urltable.o
 
@@ -20,4 +22,4 @@ invindex.o: invindex.c invindex.h
 urltable.o: urltable.c urltable.h
 
 clean:
-	rm -f *.o pagerank inverted searchPagerank *.dSYM
+	rm -f *.o pagerank inverted searchPagerank searchTfIdf *.dSYM
