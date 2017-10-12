@@ -59,9 +59,8 @@ static graph_t get_graph(handle_t collection)
 		handle_t hd = parse_url(fname, "#start Section-1", "#end Section-1");
 		// for each link in url?.txt
 		// add edge from this url to that link
-		for (int j = 0; j < handle_size(hd); j++) {
+		for (int j = 0; j < handle_size(hd); j++)
 			add_edge(g, getbuf(collection, i), getbuf(hd, j));
-		}
 
 		// free memory used in this for iteration
 		free(fname);
