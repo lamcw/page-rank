@@ -153,7 +153,6 @@ static double idf(char *word, handle_t cltn)
 static double tfidf(char *word, handle_t page, handle_t cltn)
 {
 	normalise(page);
-	/* printf("%s tf: %lf idf: %lf\n", word, tf(word, page), idf(word, cltn)); */
 	return tf(word, page) * idf(word, cltn);
 }
 
