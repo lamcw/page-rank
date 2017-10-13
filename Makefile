@@ -3,7 +3,7 @@ CFLAGS= -Wall -Werror -g -std=c11 -lm
 
 all: pagerank inverted searchPagerank searchTfIdf
 
-searchTfIdf: searchTfIdf.c invindex.o parser.o
+searchTfIdf: searchTfIdf.c invindex.o parser.o urltable.o
 
 searchPagerank: searchPagerank.c invindex.o urltable.o
 
