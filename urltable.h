@@ -39,6 +39,7 @@ void set_count(urltable_t t);
 url_t *table_to_arr(urltable_t, int *);
 url_t *partition_arr(url_t *, int, int, int *);
 int in_arr(url_t *, int, char *);
+char *get_arr_url(url_t);
 void print_arr(url_t *, int);
 void free_table_arr(url_t *, int);
 

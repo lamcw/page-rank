@@ -246,6 +246,11 @@ url_t *partition_arr(url_t *arr, int size, int urlcount, int *sub_arr_size)
 	return ret;
 }
 
+char *get_arr_url(url_t u)
+{
+	return u->url;
+}
+
 void print_arr(url_t *arr, int size)
 {
 	for (int i = 0; i < size; i++)
