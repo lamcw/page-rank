@@ -118,15 +118,21 @@ int _tfidf_cmp(const void *a, const void *b)
 static void sortby_tfidf(tfidf_t *arr, int size, char **query, handle_t cltn)
 {
 	for (int i = 0; i < size; i++) {
+		// open url source
 		char *fname = malloc(strlen(arr[i].url) + 4);
 		sprintf(fname, "%s.txt", arr[i].url);
 		handle_t page = parse_url(fname, "#start Section-2", "#end Section-2");
+
+		// for each search term
+		// calculate the summation of tfidf for this url
 		for (int j = 0; query[j] != NULL; j++) {
 			arr[i].tfidf += tfidf(query[j], page, cltn);
 		}
+
 		free(fname);
 		free_handle(page);
 	}
+	// sort by tfidf in descending order
 	qsort(arr, size, sizeof(tfidf_t), _tfidf_cmp);
 }
 
@@ -140,6 +146,7 @@ static double tf(char *word, handle_t page)
 	return (double) count / (double) handle_size(page);
 }
 
+// given a corpus, find its idf with @word
 static double idf(char *word, handle_t cltn)
 {
 	int count = 0;
