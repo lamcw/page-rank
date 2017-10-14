@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "invindex.h"
 #include "urltable.h"
@@ -15,6 +16,7 @@ static int count_lines(FILE *f);
 static pr_t *parse_pr(char *path, int *size);
 static void free_pr(pr_t *arr, int size);
 static void print_sorted_pr(pr_t *, int, url_t *, int);
+static char *str_lower(char *str);
 
 int main(int argc, char **argv)
 {
@@ -25,6 +27,10 @@ int main(int argc, char **argv)
 
 	int nquery = argc - 1;
 	char **query = &argv[1];
+
+	// normalise words
+	for (int i = 0; i < nquery; i++)
+		str_lower(query[i]);
 
 	invindex_t in = read_index("invertedIndex.txt");
 	urltable_t t = new_table(nquery);
@@ -127,4 +133,14 @@ static void free_pr(pr_t *arr, int size)
 		free(arr[i].url);
 	}
 	free(arr);
+}
+
+static char *str_lower(char *str)
+{
+	int i = 0;
+	while (str[i]) {
+		str[i] = tolower((unsigned char)str[i]);
+		i++;
+	}
+	return str;
 }
