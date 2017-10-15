@@ -31,12 +31,14 @@ struct _invindex {
 	int max_size;		// maximum size of *tokens
 };
 
-static void add_url(invurl_t tok, char *url);
-static void sort_url(invurl_t u);
-static void sort_tok(invindex_t ind);
-static void add_urls_size(invurl_t u);
-static void add_tokens_size(invindex_t ind);
-static invurl_t *search_tok(invindex_t ind, char *word);
+static void add_url(invurl_t, char *);
+static void sort_url(invurl_t);
+static void sort_tok(invindex_t);
+static void add_urls_size(invurl_t);
+static void add_tokens_size(invindex_t);
+static invurl_t *search_tok(invindex_t, char *);
+static int _url_cmp(const void *, const void *);
+static int _tok_cmp(const void *, const void *);
 
 /*
  * newindex - create an invindex adt
@@ -67,7 +69,7 @@ invindex_t newindex(void) {
 }
 
 //  internal string comparison function
-int _url_cmp(const void *a, const void *b)
+static int _url_cmp(const void *a, const void *b)
 {
 	return strcmp(*(char **)a, *(char **)b);
 }
@@ -79,7 +81,7 @@ static void sort_url(invurl_t u)
 	qsort(u->urls, u->count, sizeof(char *), _url_cmp);
 }
 
-int _tok_cmp(const void *a, const void *b)
+static int _tok_cmp(const void *a, const void *b)
 {
 	invurl_t *ia = (invurl_t *)a;
 	invurl_t *ib = (invurl_t *)b;

@@ -27,6 +27,8 @@ struct _url_table {
 
 static int count_url(urltable_t, char *);
 static int get_nurl(urltable_t);
+static int _cmp(const void *, const void *);
+static int _count_cmp(const void *, const void *);
 
 // malloc an urltable_t
 urltable_t new_table(int row)
@@ -101,7 +103,7 @@ void free_table(urltable_t t)
 	free(t);
 }
 
-int _cmp(const void *a, const void *b)
+static int _cmp(const void *a, const void *b)
 {
 	url_t *ia = (url_t *)a;
 	url_t *ib = (url_t *)b;
@@ -170,7 +172,7 @@ int in_arr(url_t *arr, int size, char *key)
 	return 0;
 }
 
-int _count_cmp(const void *a, const void *b)
+static int _count_cmp(const void *a, const void *b)
 {
 	// sort in descending order
 	return (*(url_t *)b)->count - (*(url_t *)a)->count;

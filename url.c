@@ -22,6 +22,8 @@ struct _urll {
 	url_t *li;
 };
 
+static int _cmp_wpr(const void *, const void *);
+
 // takes in graph and collection to generate a list of url_t
 urll_t new_url_list(graph_t g, handle_t cltn)
 {
@@ -83,7 +85,7 @@ void free_list(urll_t list)
 	free(list);
 }
 
-int _cmp_wpr(const void *a, const void *b)
+static int _cmp_wpr(const void *a, const void *b)
 {
 	url_t *ia = (url_t *)a;
 	url_t *ib = (url_t *)b;
