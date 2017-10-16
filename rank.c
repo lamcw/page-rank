@@ -25,6 +25,7 @@ struct rank {
 
 static void add_size(rank_t r);
 
+// malloc a rank
 rank_t new_rank(const int size)
 {
 	rank_t new = malloc(sizeof(struct rank));
@@ -38,6 +39,7 @@ rank_t new_rank(const int size)
 	return new;
 }
 
+// doubles the size of rank
 static void add_size(rank_t r)
 {
 	int new_size = 2 * r->max_size;
@@ -47,6 +49,7 @@ static void add_size(rank_t r)
 	r->max_size = new_size;
 }
 
+// insert an item into rank
 void insert_rank(rank_t r, char *item)
 {
 	assert(r && item);
@@ -62,6 +65,7 @@ void insert_rank(rank_t r, char *item)
 	assert(r->size <= r->max_size);
 }
 
+// return the largest size within @ranks
 int max_size(int n, rank_t *ranks)
 {
 	int max = 0;
@@ -106,6 +110,7 @@ void free_rank(rank_t r)
 
 int in_rank(rank_t r, char *item)
 {
+	assert(r);
 	for (int i = 0; i < r->size; i++)
 		if (strcmp(r->rank[i], item) == 0)
 			return 1;
