@@ -23,6 +23,8 @@ struct rank {
 	int max_size;
 };
 
+static void add_size(rank_t r);
+
 rank_t new_rank(const int size)
 {
 	rank_t new = malloc(sizeof(struct rank));
@@ -36,6 +38,15 @@ rank_t new_rank(const int size)
 	return new;
 }
 
+static void add_size(rank_t r)
+{
+	int new_size = 2 * r->max_size;
+	item_t *tmp = realloc(r->rank, new_size * sizeof(item_t));
+	DUMP_ERR(tmp, "realloc failed");
+	r->rank = tmp;
+	r->max_size = new_size;
+}
+
 void insert_rank(rank_t r, char *item)
 {
 	assert(r && item);
@@ -46,10 +57,12 @@ void insert_rank(rank_t r, char *item)
 	strcpy(r->rank[r->size], item);
 	r->size++;
 
+	if (r->size >= r->max_size)
+		add_size(r);
 	assert(r->size <= r->max_size);
 }
 
-int max_size(int n, rank_t* ranks)
+int max_size(int n, rank_t *ranks)
 {
 	int max = 0;
 	for (int i = 0; i < n; i++)
@@ -66,6 +79,7 @@ int rank_size(rank_t r)
 
 void print_rank(rank_t r)
 {
+	assert(r);
 	for (int i = 0; i < r->size; i++)
 		puts(r->rank[i]);
 }
@@ -77,6 +91,7 @@ static int _item_cmp(const void *a, const void *b)
 
 void sort_rank(rank_t r)
 {
+	assert(r);
 	qsort(r->rank, r->size, sizeof(item_t), _item_cmp);
 }
 
@@ -87,4 +102,27 @@ void free_rank(rank_t r)
 		free(r->rank[i]);
 	free(r->rank);
 	free(r);
+}
+
+int in_rank(rank_t r, char *item)
+{
+	for (int i = 0; i < r->size; i++)
+		if (strcmp(r->rank[i], item) == 0)
+			return 1;
+	return 0;
+}
+
+rank_t merge_ranks(rank_t *ranks, int nranks)
+{
+	rank_t merged = new_rank(max_size(nranks, ranks));
+	
+	for (int i = 0; i < nranks; i++) {
+		for (int j = 0; j < ranks[i]->size; j++) {
+			if (!in_rank(merged, ranks[i]->rank[j]))
+				insert_rank(merged, ranks[i]->rank[j]);
+		}
+	}
+
+	sort_rank(merged);
+	return merged;
 }

@@ -17,15 +17,19 @@ int main(int argc, char **argv)
 
 	const int nrank = argc - 1;
 	rank_t *ranks = init_rank(nrank, &argv[1]);
+	rank_t merged = merge_ranks(ranks, nrank);
 
+	free_rank(merged);
 	free_ranks(ranks, nrank);
 	return 0;
 }
 
 static rank_t *init_rank(int size, char **files)
 {
+	// array of ranks
 	rank_t *ranks = malloc(size * sizeof(rank_t));
 
+	// parse all the rank text files and insert ranks
 	for (int i = 0; i < size; i++) {
 		handle_t rank_handle = parse(files[i]);
 		ranks[i] = new_rank(handle_size(rank_handle));

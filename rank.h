@@ -9,5 +9,7 @@ void insert_rank(rank_t, char *);
 void sort_rank(rank_t);
 void print_rank(rank_t);
 int max_size(int, rank_t *);
+int in_rank(rank_t, char *);
+rank_t merge_ranks(rank_t *, int);
 void free_rank(rank_t);
 #endif
