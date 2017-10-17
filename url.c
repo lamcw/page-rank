@@ -11,8 +11,6 @@ struct _url {
 	char *url;	// url string
 	int out_degree;	// number of out going links
 	int in_degree;	// number of incoming links
-	int *inlinks;	// contains incoming links to this url
-	int *outlinks;	// contains outgoing links to url(s)
 	double wpr;	// weighted pagerank value
 };
 
@@ -44,8 +42,6 @@ urll_t new_url_list(graph_t g, handle_t cltn)
 
 		u->out_degree = outdegree(g, i);
 		u->in_degree = indegree(g, i);
-		/* u->outlinks = nodes_to(g, i, &u->out_degree); */
-		/* u->inlinks = nodes_from(g, i, &u->in_degree); */
 		u->wpr = (double)1 / handle_size(cltn);
 	}
 
@@ -63,22 +59,10 @@ double getwpr(urll_t list, int id)
 	return list->li[id]->wpr;
 }
 
-/* int *get_outlinks(urll_t list, int id) */
-/* { */
-/* 	return list->li[id]->outlinks; */
-/* } */
-
-/* int *get_inlinks(urll_t list, int id) */
-/* { */
-/* 	return list->li[id]->inlinks; */
-/* } */
-
 void free_list(urll_t list)
 {
 	for (int i = 0; i < list->size; i++) {
 		free(list->li[i]->url);
-		/* free(list->li[i]->inlinks); */
-		/* free(list->li[i]->outlinks); */
 		free(list->li[i]);
 	}
 	free(list->li);

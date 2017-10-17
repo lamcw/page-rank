@@ -183,6 +183,7 @@ double sfdsum(int *P, rank_t merged, rank_t *ranks, int nrank)
 // currently using brute force approach
 int *minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 {
+	// cadinality of the set of nodes to be ranked
 	const int c_size = merged->size;
 	int *P = malloc(c_size * sizeof(int));
 	int *ret = malloc(c_size * sizeof(int));
@@ -208,10 +209,10 @@ int *minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 		if (ctl[i] < i) {
 			int j = (i % 2) * ctl[i];
 			SWAP(P[i], P[j]);
-			// do calculations here
-			double val = sfdsum(P, merged, ranks, nrank);
-			if (*minsfd > val) {
-				*minsfd = val;
+			// calculate scaled-footrule distance
+			double sum = sfdsum(P, merged, ranks, nrank);
+			if (*minsfd > sum) {
+				*minsfd = sum;
 				memcpy(ret, P, c_size * sizeof(int));
 			}
 			ctl[i]++;

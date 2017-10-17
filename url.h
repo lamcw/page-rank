@@ -1,3 +1,9 @@
+/* url list for finding weighted page rank. */
+/* Stores attributes for each url, including: */
+/* 	- url string */
+/* 	- out / in degree */
+/* 	- weighted page rank */
+
 #ifndef URL_H
 #define URL_H
 

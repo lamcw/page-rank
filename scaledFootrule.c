@@ -17,9 +17,14 @@ int main(int argc, char **argv)
 
 	const int nrank = argc - 1;
 	rank_t *ranks = init_rank(nrank, &argv[1]);
+	// merge the above ranks into one set of nodes to be ranked
+	// i.e. C 
 	rank_t merged = merge_ranks(ranks, nrank);
 
+	// W
 	double sfd = 0;
+	// Position array
+	// i.e. P
 	int *P = minsfd(merged, ranks, nrank, &sfd);
 	printf("%.6f\n", sfd);
 	for (int i = 1; i <= rank_size(merged); i++)

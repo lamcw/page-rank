@@ -1,7 +1,7 @@
 #ifndef INVINDEX_H
 #define INVINDEX_H
 
-/* Inverted index can be implemented with set (and map) but I do not have time
+/* Inverted index can be implemented with tries but I do not have time
  * to implement the whole data structure. Therefor simple array is used here
  */
 
