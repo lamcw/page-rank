@@ -185,45 +185,7 @@ int *minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 {
 	// cadinality of the set of nodes to be ranked
 	const int c_size = merged->size;
-	int *P = malloc(c_size * sizeof(int));
-	int *ret = malloc(c_size * sizeof(int));
-	// helper array for permutation
-	// controls index bounderies for i
-	int *ctl = calloc(c_size, sizeof(int));
-	DUMP_ERR(P, "malloc failed");
-	DUMP_ERR(ret, "malloc failed");
-	DUMP_ERR(ctl, "calloc failed");
+	int *P = calloc(c_size, sizeof(int));
 
-	// init position array
-	for (int i = 1; i <= c_size; i++)
-		P[i - 1] = i;
-
-	// first permutation
-	memcpy(ret, P, c_size * sizeof(int));
-	*minsfd = sfdsum(P, merged, ranks, nrank);
-
-	int i = 1;
-	// permute P (Heap's algorithm)
-	// https://en.wikipedia.org/wiki/Heap%27s_algorithm
-	while (i < c_size) {
-		if (ctl[i] < i) {
-			int j = (i % 2) * ctl[i];
-			SWAP(P[i], P[j]);
-			// calculate scaled-footrule distance
-			double sum = sfdsum(P, merged, ranks, nrank);
-			if (*minsfd > sum) {
-				*minsfd = sum;
-				memcpy(ret, P, c_size * sizeof(int));
-			}
-			ctl[i]++;
-			i = 1;
-		} else {
-			ctl[i] = 0;
-			i++;
-		}
-	}
-
-	free(ctl);
-	free(P);
-	return ret;
+	return P;
 }
