@@ -16,16 +16,20 @@
 	}
 #endif
 
+// macro for swapping 2 integers
+// does not use extra memory
 #ifndef SWAP
 #define SWAP(x, y) { x = x + y; y = x - y; x = x - y; }
 #endif
 
 typedef char *item_t;
 
+// wrapper around an array of char *
+// with some extra attributes
 struct rank {
-	item_t *rank;
-	int size;
-	int max_size;
+	item_t *rank;		// basically an array of char *
+	int size;		// current size of the @rank
+	int max_size;		// size allocated for @rank
 };
 
 static void add_size(rank_t);
@@ -69,6 +73,7 @@ void insert_rank(rank_t r, char *item)
 
 	if (r->size >= r->max_size)
 		add_size(r);
+	// debug checks
 	assert(r->size <= r->max_size);
 }
 
@@ -115,6 +120,9 @@ void free_rank(rank_t r)
 	free(r);
 }
 
+// merge an array of ranks into 1 rank
+// remove deuplicates and sorted
+// items are unique
 rank_t merge_ranks(rank_t *ranks, int nranks)
 {
 	rank_t merged = new_rank(max_size(nranks, ranks));
@@ -130,7 +138,7 @@ rank_t merge_ranks(rank_t *ranks, int nranks)
 	return merged;
 }
 
-char *rank_item(rank_t r, int i)
+char *get_rank_item(rank_t r, int i)
 {
 	assert(r);
 	return r->rank[i];
@@ -146,16 +154,19 @@ int pos_in_rank(rank_t r, char *item)
 	return -1;
 }
 
+// scaled-footrule distance for 1 item
 double sfd(double p, rank_t r, char *item, double c_size)
 {
 	double p_agg_rank = p / c_size;
 	double pos = pos_in_rank(r, item);
 	if (pos != -1)
+		// if found in rank
 		return fabs((pos + 1) / (double) r->size - p_agg_rank);
 	else
 		return 0;
 }
 
+// calculate the sum of scaled-footrule distance for a given 'P' arrangment
 double sfdsum(int *P, rank_t merged, rank_t *ranks, int nrank)
 {
 	double sum = 0;
@@ -168,23 +179,27 @@ double sfdsum(int *P, rank_t merged, rank_t *ranks, int nrank)
 	return sum;
 }
 
+// permute position and find the minimum scaled-footrule distance permutation
+// currently using brute force approach
 int *minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 {
 	const int c_size = merged->size;
 	int *P = malloc(c_size * sizeof(int));
 	int *ret = malloc(c_size * sizeof(int));
 	// helper array for permutation
+	// controls index bounderies for i
 	int *ctl = calloc(c_size, sizeof(int));
 	DUMP_ERR(P, "malloc failed");
 	DUMP_ERR(ret, "malloc failed");
 	DUMP_ERR(ctl, "calloc failed");
 
-	memcpy(ret, P, c_size * sizeof(int));
-	*minsfd = sfdsum(P, merged, ranks, nrank);
-
 	// init position array
 	for (int i = 1; i <= c_size; i++)
 		P[i - 1] = i;
+
+	// first permutation
+	memcpy(ret, P, c_size * sizeof(int));
+	*minsfd = sfdsum(P, merged, ranks, nrank);
 
 	int i = 1;
 	// permute P (Heap's algorithm)

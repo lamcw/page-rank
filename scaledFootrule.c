@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	for (int i = 1; i <= rank_size(merged); i++)
 		for (int j = 0; j < rank_size(merged); j++)
 			if (P[j] == i)
-				printf("%s\n", rank_item(merged, j));
+				printf("%s\n", get_rank_item(merged, j));
 
 	free(P);
 	free_rank(merged);

@@ -8,7 +8,7 @@ int rank_size(rank_t);
 void insert_rank(rank_t, char *);
 void sort_rank(rank_t);
 void print_rank(rank_t);
-char *rank_item(rank_t, int);
+char *get_rank_item(rank_t, int);
 int max_size(int, rank_t *);
 rank_t merge_ranks(rank_t *, int);
 int pos_in_rank(rank_t, char *);
