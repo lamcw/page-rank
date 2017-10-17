@@ -19,6 +19,15 @@ int main(int argc, char **argv)
 	rank_t *ranks = init_rank(nrank, &argv[1]);
 	rank_t merged = merge_ranks(ranks, nrank);
 
+	double sfd = 0;
+	int *P = minsfd(merged, ranks, nrank, &sfd);
+	printf("%.6f\n", sfd);
+	for (int i = 1; i <= rank_size(merged); i++)
+		for (int j = 0; j < rank_size(merged); j++)
+			if (P[j] == i)
+				printf("%s\n", rank_item(merged, j));
+
+	free(P);
 	free_rank(merged);
 	free_ranks(ranks, nrank);
 	return 0;
