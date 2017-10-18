@@ -33,6 +33,8 @@ struct rank {
 };
 
 static void add_size(rank_t);
+static void show_matrix(double **, int);
+static int cover_zeros(double **, unsigned char **, int);
 
 // malloc a rank
 rank_t new_rank(const int size)
@@ -166,7 +168,8 @@ double sfd(double p, rank_t r, char *item, double c_size)
 		return 0;
 }
 
-// calculate the sum of scaled-footrule distance for a given 'P' arrangment
+// calculate the sum of scaled-footrule distance for a given url in a given
+// position in final rank
 double sfdsum(int p, rank_t *ranks, char *item, int nrank, int c_size)
 {
 	double sum = 0;
@@ -188,13 +191,13 @@ static double **cost_matrix(rank_t merged, rank_t *ranks, int nrank)
 	// row - url
 	// column - position
 	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			cost[i][j] += sfdsum(j + 1, ranks, merged->rank[i],    \
+		for (int j = 1; j <= n; j++)
+			cost[i][j - 1] = sfdsum(j, ranks, merged->rank[i],    \
 					     nrank, n);
 	return cost;
 }
 
-static double row_lowest(double **cost, int size, int row)
+static double row_lowest(double **cost, const int size, int row)
 {
 	double min = -1;
 	for (int i = 0; i < size; i++)
@@ -203,7 +206,7 @@ static double row_lowest(double **cost, int size, int row)
 	return min;
 }
 
-static double col_lowest(double **cost, int size, int col)
+static double col_lowest(double **cost, const int size, int col)
 {
 	double min = -1;
 	for (int i = 0; i < size; i++)
@@ -212,7 +215,7 @@ static double col_lowest(double **cost, int size, int col)
 	return min;
 }
 
-static void subtract_lowest(double **cost, int size)
+static void subtract_lowest(double **cost, const int size)
 {
 	// subtract row minima
 	for (int i = 0; i < size; i++) {
@@ -228,16 +231,124 @@ static void subtract_lowest(double **cost, int size)
 	}
 }
 
+static int all_zero(int *arr, const int n)
+{
+	for (int i = 0; i < n; i++)
+		if (arr[i] != 0)
+			return 0;
+	return 1;
+}
+
+static void show_matrix(double **m, int size)
+{
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++)
+			printf("%f ", m[i][j]);
+		puts("");
+	}
+}
+
+static int cover_zeros(double **cost, unsigned char **line, const int size)
+{
+	// number of zeros in row / column
+	int *zeros_row = calloc(size, sizeof(int));
+	int *zeros_col = calloc(size, sizeof(int));
+	int line_required = 0;
+
+	// find number of zeros in each column and row
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			if (cost[i][j] == 0) {
+				zeros_row[i]++;
+				zeros_col[j]++;
+			}
+		}
+	}
+
+	while (!all_zero(zeros_row, size) && !all_zero(zeros_col, size)) {
+		// index of row with max no. of 0s
+		int maxrow = 0;
+		// index of column with max no. of 0s
+		int maxcol = 0;
+		// maximum number of 0s in one row/column
+		int max = -1;
+		unsigned char max_iscol = 0;
+
+		// search for row / column with max no. of 0s
+		for (int i = 0; i < size; i++) {
+			if (max == -1 || zeros_row[i] > max) {
+				max = zeros_row[i];
+				maxrow = i;
+				max_iscol = 0;
+			}
+			if (zeros_col[i] > max) {
+				max = zeros_col[i];
+				maxcol = i;
+				max_iscol = 1;
+			}
+		}
+
+		// reset the 0 count for row / column with max no. of 0s
+		if (max_iscol)
+			zeros_col[maxcol] = 0;
+		else
+			zeros_row[maxrow] = 0;
+
+		// reduce 0 count
+		//           0 count
+		// 0 1 2 3 -> 1
+		// 0 4 0 5 -> 2
+		// 0 6 7 8 -> 1
+		// 0 0 0 9 -> 3
+		// | | | |
+		// v v v v
+		// 4 1 2 0
+		//
+		// count in column 0 is reset to 0
+		//
+		// | 1 2 3 -> 0
+		// | 4 0 5 -> 1
+		// | 6 7 8 -> 0
+		// | 0 0 9 -> 2
+		// | | | |
+		// v v v v
+		// 0 1 2 0
+		if (max_iscol) {
+			for (int i = 0; i < size; i++)
+				if (cost[i][maxcol] == 0)
+					zeros_row[i]--;
+		} else {
+			for (int i = 0; i < size; i++)
+				if (cost[maxrow][i] == 0)
+					zeros_col[i]--;
+		}
+		for (int i = 0; i < size; i++)
+			if (max_iscol)
+				line[i][maxcol]++;
+			else
+				line[maxrow][i]++;
+		line_required++;
+	}
+
+	return line_required;
+}
+
 // permute position and find the minimum scaled-footrule distance permutation
 // currently uses Hungarian assignment algorithm
 int *minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 {
+	*minsfd = 0;
 	// cadinality of the set of nodes to be ranked
 	const int c_size = merged->size;
 	int *P = calloc(c_size, sizeof(int));
 	double **cost = cost_matrix(merged, ranks, nrank);
+	unsigned char **covered = malloc(c_size * sizeof(unsigned char *));
+	for (int i = 0; i < c_size; i++)
+		covered[i] = calloc(c_size, sizeof(unsigned char));
 
+	show_matrix(cost, c_size);
 	subtract_lowest(cost, c_size);
+	printf("\nlines required = %d\n", cover_zeros(cost, covered, c_size));
 
 	return P;
 }
