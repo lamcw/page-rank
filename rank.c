@@ -167,25 +167,44 @@ double sfd(double p, rank_t r, char *item, double c_size)
 }
 
 // calculate the sum of scaled-footrule distance for a given 'P' arrangment
-double sfdsum(int *P, rank_t merged, rank_t *ranks, int nrank)
+double sfdsum(int p, rank_t *ranks, char *item, int nrank, int c_size)
 {
 	double sum = 0;
 
-	for (int i = 0; i < nrank; i++) {
-		for (int j = 0; j < merged->size; j++)
-			sum += sfd(P[j], ranks[i], merged->rank[j], merged->size);
-	}
+	for (int i = 0; i < nrank; i++)
+		sum += sfd(p, ranks[i], item, c_size);
 
 	return sum;
 }
 
+static double **cost_matrix(rank_t merged, rank_t *ranks, int nrank)
+{
+	// init matrix with 0
+	const int n = merged->size;
+	double **cost = calloc(n, sizeof(double *));
+	for (int i = 0; i < n; i++)
+		cost[i] = calloc(n, sizeof(double));
+
+	// row - url
+	// column - position
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+			cost[i][j] += sfdsum(j + 1, ranks, merged->rank[i],    \
+					     nrank, n);
+	return cost;
+}
+
 // permute position and find the minimum scaled-footrule distance permutation
-// currently using brute force approach
+// currently uses Hungarian assignment algorithm
 int *minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 {
 	// cadinality of the set of nodes to be ranked
 	const int c_size = merged->size;
 	int *P = calloc(c_size, sizeof(int));
+
+	for (int i = 0; i <= nrank; i++) {
+		double **cost = cost_matrix(merged, ranks, nrank);
+	}
 
 	return P;
 }
