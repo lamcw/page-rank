@@ -194,6 +194,40 @@ static double **cost_matrix(rank_t merged, rank_t *ranks, int nrank)
 	return cost;
 }
 
+static double row_lowest(double **cost, int size, int row)
+{
+	double min = -1;
+	for (int i = 0; i < size; i++)
+		if (min == -1 || min > cost[row][i])
+			min = cost[row][i];
+	return min;
+}
+
+static double col_lowest(double **cost, int size, int col)
+{
+	double min = -1;
+	for (int i = 0; i < size; i++)
+		if (min == -1 || min > cost[i][col])
+			min = cost[i][col];
+	return min;
+}
+
+static void subtract_lowest(double **cost, int size)
+{
+	// subtract row minima
+	for (int i = 0; i < size; i++) {
+		double sub = row_lowest(cost, size, i);
+		for (int j = 0; j < size; j++)
+			cost[i][j] -= sub;
+	}
+	// subtract column minima
+	for (int i = 0; i < size; i++) {
+		double sub = col_lowest(cost, size, i);
+		for (int j = 0; j < size; j++)
+			cost[j][i] -= sub;
+	}
+}
+
 // permute position and find the minimum scaled-footrule distance permutation
 // currently uses Hungarian assignment algorithm
 int *minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
@@ -201,10 +235,9 @@ int *minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 	// cadinality of the set of nodes to be ranked
 	const int c_size = merged->size;
 	int *P = calloc(c_size, sizeof(int));
+	double **cost = cost_matrix(merged, ranks, nrank);
 
-	for (int i = 0; i <= nrank; i++) {
-		double **cost = cost_matrix(merged, ranks, nrank);
-	}
+	subtract_lowest(cost, c_size);
 
 	return P;
 }
