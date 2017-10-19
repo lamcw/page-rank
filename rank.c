@@ -16,12 +16,6 @@
 	}
 #endif
 
-// macro for swapping 2 integers
-// does not use extra memory
-#ifndef SWAP
-#define SWAP(x, y) { x = x + y; y = x - y; x = x - y; }
-#endif
-
 typedef char *item_t;
 
 typedef struct _tuple {
