@@ -25,12 +25,10 @@ int main(int argc, char **argv)
 	double sfd = 0;
 	// Position array
 	// i.e. P
-	int *P = minsfd(merged, ranks, nrank, &sfd);
+	char **P = minsfd(merged, ranks, nrank, &sfd);
 	printf("%.6f\n", sfd);
-	for (int i = 1; i <= rank_size(merged); i++)
-		for (int j = 0; j < rank_size(merged); j++)
-			if (P[j] == i)
-				printf("%s\n", get_rank_item(merged, j));
+	for (int i = 0; i < rank_size(merged); i++)
+		printf("%s\n", P[i]);
 
 	free(P);
 	free_rank(merged);

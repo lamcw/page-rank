@@ -48,6 +48,10 @@ static void show_matrix(double **, int);
 static void init_zero_count(double **, int *, int *, int);
 static int cover_zeros(double **, unsigned char **, int);
 static void adjust_matrix(double **, unsigned char **, int);
+static void mark_selected(unsigned char **, int, int, int);
+static int has_unique_zero(double **, unsigned char **, int, int, int);
+static int matrix_has_unqiue_zero(double **, unsigned char **, int, int *, int *);
+static void insert_to_position(tuple_t *, int *, int, int);
 static void reset_cover(unsigned char **, int);
 static void free_matrix(double **, int);
 
@@ -143,7 +147,7 @@ void free_rank(rank_t r)
 rank_t merge_ranks(rank_t *ranks, int nranks)
 {
 	rank_t merged = new_rank(max_size(nranks, ranks));
-	
+
 	for (int i = 0; i < nranks; i++) {
 		for (int j = 0; j < ranks[i]->size; j++) {
 			if (pos_in_rank(merged, ranks[i]->rank[j]) == -1)
@@ -208,7 +212,7 @@ static double **cost_matrix(rank_t merged, rank_t *ranks, int nrank)
 	for (int i = 0; i < n; i++)
 		for (int j = 1; j <= n; j++)
 			cost[i][j - 1] = sfdsum(j, ranks, merged->rank[i],    \
-					     nrank, n);
+					nrank, n);
 	return cost;
 }
 
@@ -386,42 +390,138 @@ static void reset_cover(unsigned char **line, int size)
 			line[i][j] = 0;
 }
 
-static tuple_t *set_minsfd(double **orig, double **cost, int size, double *sfd)
+static void mark_selected(unsigned char **selected, int size, int row, int col)
 {
-	int index = 0;
-	tuple_t *p = calloc(size, sizeof(tuple_t));
+	for (int i = 0; i < size; i++) {
+		selected[row][i] = 1;
+		selected[i][col] = 1;
+	}
+}
 
-	for (int j = 0; j < size; j++) {
-		for (int i = 0; i < size; i++) {
-			// found the first 0 in column
-			if (cost[i][j] == 0) {
-				p[index].url = i;
-				p[index].p = j;
-				// next column
-				index++;
-				break;
+static int has_unique_zero(double **cost, unsigned char **selected, int k,
+			   int size, int isrow)
+{
+	int count = 0;
+	int first_zero = -1;
+
+	for (int i = 0; i < size; i++) {
+		if (isrow) {
+			if (cost[k][i] == 0 && !selected[k][i]) {
+				if (first_zero == -1) first_zero = i;
+				count++;
+			}
+		} else {
+			if (cost[i][k] == 0 && !selected[i][k]) {
+				if (first_zero == -1) first_zero = i;
+				count++;
 			}
 		}
 	}
 
-	// error checking
-	assert(index == size);
+	return count == 1 ? first_zero : -1;
+}
 
+static void pick_zero(double **cost, unsigned char **selected, int size,
+		int *row, int *col)
+{
+	*row = *col = 0;
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			if (cost[i][j] == 0 && !selected[i][j]) {
+				*row = i;
+				*col = j;
+				break;
+			}
+		}
+	}
+}
+
+static int matrix_has_unqiue_zero(double **m, unsigned char **selected,
+		int size, int *row, int *col)
+{
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			if (has_unique_zero(m, selected, i, size, 1) != -1
+				&& has_unique_zero(m, selected, j, size, 0) != -1) {
+				*row = i;
+				*col = j;
+				return 1;
+			}
+		}
+	}	
+	return 0;
+}
+
+static void insert_to_position(tuple_t *p, int *index, int row, int col)
+{
+	p[*index].url = row;
+	p[*index].p = col;
+	(*index)++;
+}
+
+static tuple_t *set_minsfd(double **orig, double **cost, int size, double *sfd)
+{
+	int index = 0;
+	tuple_t *p = calloc(size, sizeof(tuple_t));
+	unsigned char **selected = calloc(size, sizeof(unsigned char *));
 	for (int i = 0; i < size; i++)
-		*sfd += orig[p[i].url][p[i].p];
+		selected[i] = calloc(size, sizeof(unsigned char));
 
+	// row scanning
+	for (int i = 0; i < size; i++) {
+		int pos = has_unique_zero(cost, selected, i, size, 1);
+		if (pos >= 0) {
+			mark_selected(selected, size, i, pos);
+			insert_to_position(p, &index, i, pos);
+		}
+	}
+	// column scanning
+	for (int j = 0; j < size; j++) {
+		int pos = has_unique_zero(cost, selected, j, size, 0);
+		if (pos >= 0) {
+			mark_selected(selected, size, pos, j);
+			insert_to_position(p, &index, pos, j);
+		}
+	}
+
+	if (index < size) {
+		int i = 0, j = 0;
+		pick_zero(cost, selected, size, &i, &j);
+		mark_selected(selected, size, i, j);
+		p[index].url = i;
+		p[index].p = j;
+		index++;
+		while (index < size && matrix_has_unqiue_zero(cost, selected, size, &i, &j)) {
+			mark_selected(selected, size, i, j);
+			insert_to_position(p, &index, i, j);
+		}
+	}
+
+	for (int i = 0; i < size; i++) {
+		*sfd += orig[p[i].url][p[i].p];
+		free(selected[i]);
+	}
+	free(selected);
 	return p;
+}
+
+static char **pos_to_parr(tuple_t *pos, int size, rank_t merged)
+{
+	char **arr = malloc(size * sizeof(char *));
+	for (int i = 0; i < size; i++) {
+		arr[pos[i].p] = malloc(strlen(merged->rank[pos[i].url]) + 1);
+		strcpy(arr[pos[i].p], merged->rank[pos[i].url]);
+	}
+	return arr;
 }
 
 // permute position and find the minimum scaled-footrule distance permutation
 // currently uses Hungarian assignment algorithm
-int *minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
+char **minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 {
 	*minsfd = 0;
 	// cadinality of the set of nodes to be ranked
 	const int c_size = merged->size;
-	printf("size %d\n", c_size);
-	int *P = calloc(c_size, sizeof(int));
 	double **orig = cost_matrix(merged, ranks, nrank);
 	double **cost = cost_matrix(merged, ranks, nrank);
 	unsigned char **covered = calloc(c_size, sizeof(unsigned char *));
@@ -429,27 +529,23 @@ int *minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 	for (int i = 0; i < c_size; i++)
 		covered[i] = calloc(c_size, sizeof(unsigned char));
 
-	show_matrix(cost, c_size);
-	puts("");
 	subtract_lowest(cost, c_size);
 	while (cover_zeros(cost, covered, c_size) < c_size) {
 		show_matrix(cost, c_size);
-		for (int i = 0; i < c_size; i++)
-			for (int j = 0; j < c_size; j++)
-				printf("%d \n", covered[i][j]);
-		puts("");
 		adjust_matrix(cost, covered, c_size);
 		reset_cover(covered, c_size);
 	}
 
-	set_minsfd(orig, cost, c_size, minsfd);
+	tuple_t *pos = set_minsfd(orig, cost, c_size, minsfd);
+	char **p = pos_to_parr(pos, c_size, merged);
 
 	for (int i = 0; i < c_size; i++)
 		free(covered[i]);
 	free(covered);
+	free(pos);
 	free_matrix(cost, c_size);
 	free_matrix(orig, c_size);
-	return P;
+	return p;
 }
 
 static void free_matrix(double **m, int size)
