@@ -32,8 +32,15 @@ struct rank {
 	int max_size;		// size allocated for @rank
 };
 
+// helper functions signature
 static void add_size(rank_t);
+static double **cost_matrix(rank_t, rank_t *, int);
+static double row_lowest(double **, int, int);
+static double col_lowest(double **, int, int);
+static void subtract_lowest(double **, int);
+static int all_zero(int *, int);
 static void show_matrix(double **, int);
+static void init_zero_count(double **, int *, int *, int);
 static int cover_zeros(double **, unsigned char **, int);
 
 // malloc a rank
@@ -239,12 +246,25 @@ static int all_zero(int *arr, const int n)
 	return 1;
 }
 
-static void show_matrix(double **m, int size)
+static void show_matrix(double **m, const int size)
 {
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++)
 			printf("%f ", m[i][j]);
 		puts("");
+	}
+}
+
+// find number of zeros in each column and row
+static void init_zero_count(double **m, int *row, int *col, const int size)
+{
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			if (m[i][j] == 0) {
+				row[i]++;
+				col[j]++;
+			}
+		}
 	}
 }
 
@@ -255,15 +275,7 @@ static int cover_zeros(double **cost, unsigned char **line, const int size)
 	int *zeros_col = calloc(size, sizeof(int));
 	int line_required = 0;
 
-	// find number of zeros in each column and row
-	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j++) {
-			if (cost[i][j] == 0) {
-				zeros_row[i]++;
-				zeros_col[j]++;
-			}
-		}
-	}
+	init_zero_count(cost, zeros_row, zeros_col, size);
 
 	while (!all_zero(zeros_row, size) && !all_zero(zeros_col, size)) {
 		// index of row with max no. of 0s
