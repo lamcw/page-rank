@@ -27,8 +27,10 @@ int main(int argc, char **argv)
 	// i.e. P
 	char **P = minsfd(merged, ranks, nrank, &sfd);
 	printf("%.6f\n", sfd);
-	for (int i = 0; i < rank_size(merged); i++)
+	for (int i = 0; i < rank_size(merged); i++) {
 		printf("%s\n", P[i]);
+		free(P[i]);
+	}
 
 	free(P);
 	free_rank(merged);
