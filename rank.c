@@ -24,6 +24,11 @@
 
 typedef char *item_t;
 
+typedef struct _tuple {
+	int url;
+	int p;
+} tuple_t;
+
 // wrapper around an array of char *
 // with some extra attributes
 struct rank {
@@ -42,6 +47,9 @@ static int all_zero(int *, int);
 static void show_matrix(double **, int);
 static void init_zero_count(double **, int *, int *, int);
 static int cover_zeros(double **, unsigned char **, int);
+static void adjust_matrix(double **, unsigned char **, int);
+static void reset_cover(unsigned char **, int);
+static void free_matrix(double **, int);
 
 // malloc a rank
 rank_t new_rank(const int size)
@@ -307,6 +315,7 @@ static int cover_zeros(double **cost, unsigned char **line, const int size)
 			zeros_row[maxrow] = 0;
 
 		// reduce 0 count
+		//
 		//           0 count
 		// 0 1 2 3 -> 1
 		// 0 4 0 5 -> 2
@@ -342,7 +351,66 @@ static int cover_zeros(double **cost, unsigned char **line, const int size)
 		line_required++;
 	}
 
+	free(zeros_col);
+	free(zeros_row);
 	return line_required;
+}
+
+static void adjust_matrix(double **cost, unsigned char **line, int size)
+{
+	double min = -1;
+
+	// find smallest uncovered element in matrix
+	for (int i = 0; i < size; i++)
+		for (int j = 0; j < size; j++)
+			if (line[i][j] == 0 && (min == -1 || min > cost[i][j]))
+				min = cost[i][j];
+
+	// subtract @min from all uncovered elements
+	// add @min to all elements that are covered twice
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			if (line[i][j] == 0)
+				cost[i][j] -= min;
+			else if (line[i][j] == 2)
+				cost[i][j] += min;
+		}
+	}
+}
+
+static void reset_cover(unsigned char **line, int size)
+{
+	// reset everything to zero
+	for (int i = 0; i < size; i++)
+		for (int j = 0; j < size; j++)
+			line[i][j] = 0;
+}
+
+static tuple_t *set_minsfd(double **orig, double **cost, int size, double *sfd)
+{
+	int index = 0;
+	tuple_t *p = calloc(size, sizeof(tuple_t));
+
+	for (int j = 0; j < size; j++) {
+		for (int i = 0; i < size; i++) {
+			// found the first 0 in column
+			if (cost[i][j] == 0) {
+				p[index].url = i;
+				p[index].p = j;
+				// next column
+				index++;
+				break;
+			}
+		}
+	}
+
+	// error checking
+	assert(index == size);
+
+	for (int i = 0; i < size; i++)
+		*sfd += orig[p[i].url][p[i].p];
+
+	return p;
 }
 
 // permute position and find the minimum scaled-footrule distance permutation
@@ -352,15 +420,41 @@ int *minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 	*minsfd = 0;
 	// cadinality of the set of nodes to be ranked
 	const int c_size = merged->size;
+	printf("size %d\n", c_size);
 	int *P = calloc(c_size, sizeof(int));
+	double **orig = cost_matrix(merged, ranks, nrank);
 	double **cost = cost_matrix(merged, ranks, nrank);
-	unsigned char **covered = malloc(c_size * sizeof(unsigned char *));
+	unsigned char **covered = calloc(c_size, sizeof(unsigned char *));
+
 	for (int i = 0; i < c_size; i++)
 		covered[i] = calloc(c_size, sizeof(unsigned char));
 
 	show_matrix(cost, c_size);
+	puts("");
 	subtract_lowest(cost, c_size);
-	printf("\nlines required = %d\n", cover_zeros(cost, covered, c_size));
+	while (cover_zeros(cost, covered, c_size) < c_size) {
+		show_matrix(cost, c_size);
+		for (int i = 0; i < c_size; i++)
+			for (int j = 0; j < c_size; j++)
+				printf("%d \n", covered[i][j]);
+		puts("");
+		adjust_matrix(cost, covered, c_size);
+		reset_cover(covered, c_size);
+	}
 
+	set_minsfd(orig, cost, c_size, minsfd);
+
+	for (int i = 0; i < c_size; i++)
+		free(covered[i]);
+	free(covered);
+	free_matrix(cost, c_size);
+	free_matrix(orig, c_size);
 	return P;
+}
+
+static void free_matrix(double **m, int size)
+{
+	for (int i = 0; i < size; i++)
+		free(m[i]);
+	free(m);
 }
