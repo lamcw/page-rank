@@ -1,3 +1,50 @@
+/* An interface to access the rank adt
+ * written by Thomas Lam
+ *
+ * Rank ADT
+ * 	- wrapper around char array
+ * 	- stores url in order of their ranking
+ *
+ * Scaled-footrule optimal aggregation for partial list
+ * 	- define bipartite graph where vertices on each side represents urls
+ * 	  and posssible positions, edges represents the sum of scaled-footrule
+ * 	  distance
+ *
+ * 	   url        pos
+ * 	 -----------------  
+ * 	  url1 \-------1
+ *              \     /
+ * 	  url2 --\-----2
+ *                \ /
+ * 	  url3     \   3
+ *               /  \
+ * 	  url4       \ 4
+ *                    \
+ * 	  url5         5
+ * 	  	etc...
+ *
+ * 	- time complexity O(n!) if uses brute force to generate all possible
+ * 	  permutation, where n is the number of possible position
+ * 	- Smarter way: recast the problem as a minimum cost bipartite matching
+ * 	  problem, which we can use Hungarian Algorithm to solve
+ * 	- time complexity: O(n^3)
+ *
+ * Hungarian Algorithm
+ * 	- solve the "assignment problem"
+ * 	- convert the above bipartite graph into a n x n matrix
+ * 	- row = urls, col = positions
+ * 	- steps:
+ * 		1. subtract row minima
+ *	 	2. subtract column minima
+ * 		3. cover all zeros with a minimum number of lines
+ * 		4. adjust matrix (create additional zeros)
+ * 		5. assign urls to positions (optimal assignment)
+ * 	- this algorithm is implemented in minsfd()
+ *
+ * Website reference
+ * 	- http://www.hungarianalgorithm.com/hungarianalgorithm.php (basic steps)
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -38,7 +85,6 @@ static double row_lowest(double **, int, int);
 static double col_lowest(double **, int, int);
 static void subtract_lowest(double **, int);
 static int all_zero(int *, int);
-static void show_matrix(double **, int);
 static void init_zero_count(double **, int *, int *, int);
 static int cover_zeros(double **, unsigned char **, int);
 static void adjust_matrix(double **, unsigned char **, int);
@@ -47,6 +93,7 @@ static int has_unique_zero(double **, unsigned char **, int, int, int);
 static int matrix_has_unqiue_zero(double **, unsigned char **, int, int *, int *);
 static void insert_to_position(tuple_t *, int *, int, int);
 static void reset_cover(unsigned char **, int);
+static char **pos_to_parr(tuple_t *, int, rank_t);
 static void free_matrix(double **, int);
 
 // malloc a rank
@@ -252,15 +299,6 @@ static int all_zero(int *arr, const int n)
 	return 1;
 }
 
-static void show_matrix(double **m, const int size)
-{
-	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j++)
-			printf("%f ", m[i][j]);
-		puts("");
-	}
-}
-
 // find number of zeros in each column and row
 static void init_zero_count(double **m, int *row, int *col, const int size)
 {
@@ -279,7 +317,11 @@ static int cover_zeros(double **cost, unsigned char **line, const int size)
 	// number of zeros in row / column
 	int *zeros_row = calloc(size, sizeof(int));
 	int *zeros_col = calloc(size, sizeof(int));
+	// lines required to cover all zeros in matrix
 	int line_required = 0;
+	// track rows / columns with the same direction of the last
+	// line pushed to @line
+	int last_insert_is_vert = 0;
 
 	init_zero_count(cost, zeros_row, zeros_col, size);
 
@@ -294,12 +336,17 @@ static int cover_zeros(double **cost, unsigned char **line, const int size)
 
 		// search for row / column with max no. of 0s
 		for (int i = 0; i < size; i++) {
-			if (max == -1 || zeros_row[i] > max) {
+			// if max is found then update corresponding
+			// tracking variables, i.e. @max, @maxrow / @maxcol,
+			// @max_iscol
+			if (max == -1 || zeros_row[i] > max
+			    || (zeros_row[i] == max && !last_insert_is_vert)) {
 				max = zeros_row[i];
 				maxrow = i;
 				max_iscol = 0;
 			}
-			if (zeros_col[i] > max) {
+			if (max == -1 || zeros_col[i] > max
+			    || (zeros_col[i] == max && last_insert_is_vert)) {
 				max = zeros_col[i];
 				maxcol = i;
 				max_iscol = 1;
@@ -333,10 +380,12 @@ static int cover_zeros(double **cost, unsigned char **line, const int size)
 		// v v v v
 		// 0 1 2 0
 		if (max_iscol) {
+			last_insert_is_vert = 1;
 			for (int i = 0; i < size; i++)
 				if (cost[i][maxcol] == 0)
 					zeros_row[i]--;
 		} else {
+			last_insert_is_vert = 0;
 			for (int i = 0; i < size; i++)
 				if (cost[maxrow][i] == 0)
 					zeros_col[i]--;
@@ -376,14 +425,15 @@ static void adjust_matrix(double **cost, unsigned char **line, int size)
 	}
 }
 
+// reset all the lines to zero
 static void reset_cover(unsigned char **line, int size)
 {
-	// reset everything to zero
 	for (int i = 0; i < size; i++)
 		for (int j = 0; j < size; j++)
 			line[i][j] = 0;
 }
 
+// mark @row and @col to be selected
 static void mark_selected(unsigned char **selected, int size, int row, int col)
 {
 	for (int i = 0; i < size; i++) {
@@ -392,6 +442,8 @@ static void mark_selected(unsigned char **selected, int size, int row, int col)
 	}
 }
 
+// if matrix has unqiue zero along row / column @K, return the position of
+// that zero else reutrn -1
 static int has_unique_zero(double **cost, unsigned char **selected, int k,
 			   int size, int isrow)
 {
@@ -430,13 +482,15 @@ static void pick_zero(double **cost, unsigned char **selected, int size,
 	}
 }
 
+// check if matrix has a unique zero, that is, there is only 1 zero along a
+// particular row / column
 static int matrix_has_unqiue_zero(double **m, unsigned char **selected,
 		int size, int *row, int *col)
 {
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			if (has_unique_zero(m, selected, i, size, 1) != -1
-				&& has_unique_zero(m, selected, j, size, 0) != -1) {
+			    && has_unique_zero(m, selected, j, size, 0) != -1) {
 				*row = i;
 				*col = j;
 				return 1;
@@ -453,19 +507,28 @@ static void insert_to_position(tuple_t *p, int *index, int row, int col)
 	(*index)++;
 }
 
+// step 5
+// find unique zeros in each row and column and assign url to positions
 static tuple_t *set_minsfd(double **orig, double **cost, int size, double *sfd)
 {
 	int index = 0;
 	tuple_t *p = calloc(size, sizeof(tuple_t));
+	// stores selected elements in @cost
 	unsigned char **selected = calloc(size, sizeof(unsigned char *));
-	for (int i = 0; i < size; i++)
+	DUMP_ERR(p, "calloc failed");
+	DUMP_ERR(selected, "calloc failed");
+	for (int i = 0; i < size; i++) {
 		selected[i] = calloc(size, sizeof(unsigned char));
+		DUMP_ERR(selected[i], "calloc failed");
+	}
 
 	// row scanning
 	for (int i = 0; i < size; i++) {
 		int pos = has_unique_zero(cost, selected, i, size, 1);
 		if (pos >= 0) {
+			// mark this row to be selected
 			mark_selected(selected, size, i, pos);
+			// push url and position into @p array
 			insert_to_position(p, &index, i, pos);
 		}
 	}
@@ -473,24 +536,29 @@ static tuple_t *set_minsfd(double **orig, double **cost, int size, double *sfd)
 	for (int j = 0; j < size; j++) {
 		int pos = has_unique_zero(cost, selected, j, size, 0);
 		if (pos >= 0) {
+			// mark column as selected
 			mark_selected(selected, size, pos, j);
 			insert_to_position(p, &index, pos, j);
 		}
 	}
 
+	// not all urls are assigned to one position
 	if (index < size) {
 		int i = 0, j = 0;
+		// arbitrarily assign a remaining url to a position
 		pick_zero(cost, selected, size, &i, &j);
 		mark_selected(selected, size, i, j);
 		p[index].url = i;
 		p[index].p = j;
 		index++;
-		while (index < size && matrix_has_unqiue_zero(cost, selected, size, &i, &j)) {
+		while (index < size
+		       && matrix_has_unqiue_zero(cost, selected, size, &i, &j)) {
 			mark_selected(selected, size, i, j);
 			insert_to_position(p, &index, i, j);
 		}
 	}
 
+	// push url position to the position array
 	for (int i = 0; i < size; i++) {
 		*sfd += orig[p[i].url][p[i].p];
 		free(selected[i]);
@@ -499,18 +567,20 @@ static tuple_t *set_minsfd(double **orig, double **cost, int size, double *sfd)
 	return p;
 }
 
+// convert the tuple array to char array
 static char **pos_to_parr(tuple_t *pos, int size, rank_t merged)
 {
 	char **arr = malloc(size * sizeof(char *));
 	for (int i = 0; i < size; i++) {
 		arr[pos[i].p] = malloc(strlen(merged->rank[pos[i].url]) + 1);
+		DUMP_ERR(arr[pos[i].p], "malloc failed");
 		strcpy(arr[pos[i].p], merged->rank[pos[i].url]);
 	}
 	return arr;
 }
 
-// permute position and find the minimum scaled-footrule distance permutation
-// currently uses Hungarian assignment algorithm
+// uses Hungarian assignment algorithm to find the minimum scaled-footrule
+// distance
 char **minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 {
 	*minsfd = 0;
@@ -519,20 +589,27 @@ char **minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 	double **orig = cost_matrix(merged, ranks, nrank);
 	double **cost = cost_matrix(merged, ranks, nrank);
 	unsigned char **covered = calloc(c_size, sizeof(unsigned char *));
+	DUMP_ERR(covered, "calloc failed");
 
-	for (int i = 0; i < c_size; i++)
+	for (int i = 0; i < c_size; i++) {
 		covered[i] = calloc(c_size, sizeof(unsigned char));
+		DUMP_ERR(covered[i], "calloc failed");
+	}
 
+	// step 1 & 2
 	subtract_lowest(cost, c_size);
+	// step 3
 	while (cover_zeros(cost, covered, c_size) < c_size) {
-		show_matrix(cost, c_size);
+		// step 4
 		adjust_matrix(cost, covered, c_size);
 		reset_cover(covered, c_size);
 	}
 
+	// step 5
 	tuple_t *pos = set_minsfd(orig, cost, c_size, minsfd);
 	char **p = pos_to_parr(pos, c_size, merged);
 
+	// free eveything
 	for (int i = 0; i < c_size; i++)
 		free(covered[i]);
 	free(covered);
