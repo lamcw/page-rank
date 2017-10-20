@@ -29,13 +29,16 @@
  * 	- steps:
  * 		1. subtract row minima
  *	 	2. subtract column minima
- * 		3. cover all zeros with a minimum number of lines
+ * 		3. find possible assignment. If can't, cover all zeros
+ * 		   with a minimum number of lines
  * 		4. adjust matrix (create additional zeros)
- * 		5. assign urls to positions (optimal assignment)
+ * 		5. repeat step 3-4 until an assignment is possible
+ * 		6. assign urls to positions (optimal assignment)
  * 	- this algorithm is implemented in minsfd()
  *
  * Website reference
  * 	- http://www.hungarianalgorithm.com/hungarianalgorithm.php (basic steps)
+ * 	- http://cbom.atozmath.com/CBOM/Assignment.aspx?q=hm
  */
 
 #include <stdio.h>
@@ -57,6 +60,7 @@
 	}
 #endif
 
+// macro to mitigate errors when comparing float / double
 #ifndef FEQUAL
 #define FEQUAL(a ,b) fabs(a - b) < 0.00000000000001
 #endif
@@ -70,14 +74,20 @@ static double **cost_matrix(rank_t, rank_t *, int);
 static double row_lowest(double **, int, int);
 static double col_lowest(double **, int, int);
 static void subtract_lowest(double **, int);
-static int cover_zeros(double **, unsigned char **, tuple_t *,int, int);
 static void adjust_matrix(double **, unsigned char **, int);
+static void mark(unsigned char **, int, int, int);
+static int row_assigned(tuple_t *, int, int);
+static int is_elm_assigned(tuple_t *, int, int, int);
+static int cover_zeros(double **, unsigned char **, tuple_t *,int, int);
+static void reset_cover(unsigned char **, int);
 static void mark_selected(unsigned char **, int, int, int);
 static int has_unique_zero(double **, unsigned char **, int, int, int);
-static void reset_cover(unsigned char **, int);
+static int done_assign(double **, unsigned char **, tuple_t *, int);
+static void assign_tuple(tuple_t *, int *, int, int);
+static void pick_zero(double **, unsigned char **, int, int *, int *);
+static tuple_t *assign(double **, double **, int, int *);
 static char **pos_to_arr(tuple_t *, int, rank_t);
 static void free_matrix(double **, int);
-static void show_matrix(double **m, int size);
 
 // scaled-footrule distance for 1 item
 double sfd(double p, rank_t r, char *item, double c_size)
@@ -103,6 +113,7 @@ double sfdsum(int p, rank_t *ranks, char *item, int nrank, int c_size)
 	return sum;
 }
 
+// create a n x n cost matrix
 static double **cost_matrix(rank_t merged, rank_t *ranks, int nrank)
 {
 	// init matrix with 0
@@ -120,6 +131,7 @@ static double **cost_matrix(rank_t merged, rank_t *ranks, int nrank)
 	return cost;
 }
 
+// find the smallest element in @row
 static double row_lowest(double **cost, const int size, int row)
 {
 	double min = -1;
@@ -129,6 +141,7 @@ static double row_lowest(double **cost, const int size, int row)
 	return min;
 }
 
+// find the smallest element in @row
 static double col_lowest(double **cost, const int size, int col)
 {
 	double min = -1;
@@ -138,6 +151,7 @@ static double col_lowest(double **cost, const int size, int col)
 	return min;
 }
 
+// perform row and column reduction on cost matrix
 static void subtract_lowest(double **cost, const int size)
 {
 	// subtract row minima
@@ -153,7 +167,9 @@ static void subtract_lowest(double **cost, const int size)
 			cost[j][i] -= sub;
 	}
 }
-
+// Find the smallest element (call it k) that is not covered by a line
+// Subtract k from all uncovered elements, and add k to all elements that
+// are covered twice.
 static void adjust_matrix(double **cost, unsigned char **line, int size)
 {
 	double min = -1;
@@ -169,13 +185,16 @@ static void adjust_matrix(double **cost, unsigned char **line, int size)
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			if (line[i][j] == 0)
+				// subtract k from uncovered elements
 				cost[i][j] -= min;
 			else if (line[i][j] == 2)
+				// add k to all elements covered twice
 				cost[i][j] += min;
 		}
 	}
 }
 
+// mark row / column to be selected
 static void mark(unsigned char **m, int size, int k, int isrow)
 {
 	for (int i = 0; i < size; i++)
@@ -189,6 +208,7 @@ static void mark(unsigned char **m, int size, int k, int isrow)
 		}
 }
 
+// check if row has assignment
 static int row_assigned(tuple_t *assigned, int nassigned, int row)
 {
 	for (int i = 0; i < nassigned; i++)
@@ -205,6 +225,7 @@ static int is_elm_assigned(tuple_t *assigned, int n, int row, int col)
 	return 0;
 }
 
+// step 3 cover all zeros in cost matrix with minimum number of lines
 static int cover_zeros(double **cost, unsigned char **line, tuple_t *assigned,
 			int nassigned, int size)
 {
@@ -271,7 +292,7 @@ static void mark_selected(unsigned char **selected, int size, int row, int col)
 	mark(selected, size, col, ISCOL);
 }
 
-// if matrix has unqiue zero along row / column @K, return the position of
+// if matrix has unqiue zero along row / column @k, return the position of
 // that zero else reutrn -1
 static int has_unique_zero(double **cost, unsigned char **selected, int k,
 		int size, int isrow)
@@ -342,6 +363,7 @@ static void pick_zero(double **cost, unsigned char **selected, int size,
 static tuple_t *assign(double **orig, double **cost, int size, int *nassigned)
 {
 	*nassigned = 0;
+	// array to store url and position pair
 	tuple_t *p = calloc(size, sizeof(tuple_t));
 	// stores selected elements in @cost
 	unsigned char **selected = calloc(size, sizeof(unsigned char *));
@@ -376,6 +398,8 @@ static tuple_t *assign(double **orig, double **cost, int size, int *nassigned)
 			}
 		}
 
+		// heuristic: when the above cannot choose any zero to assign
+		// just pick one arbitrarily
 		if (!picked) {
 			int i = 0, j = 0;
 			pick_zero(cost, selected, size, &i, &j);
@@ -401,16 +425,6 @@ static char **pos_to_arr(tuple_t *pos, int size, rank_t merged)
 	return arr;
 }
 
-static void show_matrix(double **m, int size)
-{
-	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j++)
-			printf("%f ", m[i][j]);
-		puts("");
-	}
-	puts("");
-}
-
 // uses Hungarian assignment algorithm to find the minimum scaled-footrule
 // distance
 char **minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
@@ -427,13 +441,20 @@ char **minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 		DUMP_ERR(covered[i], "calloc failed");
 	}
 
-	// step 1 & 2
 	int nassigned = 0;
-	show_matrix(cost, c_size);
+	for (int i = 0; i < c_size; i++) {
+		for (int j = 0; j < c_size; j++)
+			printf("%f ", cost[i][j]);
+		puts("");
+	}
+	// step 1 & 2
 	subtract_lowest(cost, c_size);
+	// step 3
 	tuple_t *pos = assign(orig, cost, c_size, &nassigned);
 	while (nassigned < c_size) {
+		// step 3
 		cover_zeros(cost, covered, pos, nassigned, c_size);
+		// step 4
 		adjust_matrix(cost, covered, c_size);
 		pos = assign(orig, cost, c_size, &nassigned);
 		reset_cover(covered, c_size);
@@ -442,6 +463,7 @@ char **minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 	for (int i = 0; i < c_size; i++)
 		*minsfd += orig[pos[i].row][pos[i].col];
 
+	// step 5
 	char **url = pos_to_arr(pos, c_size, merged);
 
 	// free eveything
