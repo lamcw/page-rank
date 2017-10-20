@@ -167,6 +167,7 @@ static void subtract_lowest(double **cost, const int size)
 			cost[j][i] -= sub;
 	}
 }
+
 // Find the smallest element (call it k) that is not covered by a line
 // Subtract k from all uncovered elements, and add k to all elements that
 // are covered twice.
