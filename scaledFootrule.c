@@ -4,6 +4,7 @@
 
 #include "parser.h"
 #include "rank.h"
+#include "hungarian.h"
 
 static rank_t *init_rank(int, char **);
 static void free_ranks(rank_t *, int);
