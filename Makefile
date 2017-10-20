@@ -3,7 +3,7 @@ CFLAGS= -Wall -Werror -g -std=c11 -lm
 
 all: pagerank inverted searchPagerank searchTfIdf scaledFootrule
 
-scaledFootrule: scaledFootrule.c parser.o rank.o
+scaledFootrule: scaledFootrule.c parser.o rank.o hungarian.o
 
 searchTfIdf: searchTfIdf.c invindex.o parser.o urltable.o
 
@@ -24,6 +24,8 @@ url.o: url.c url.h
 invindex.o: invindex.c invindex.h
 
 urltable.o: urltable.c urltable.h
+
+hungarian.o: hungarian.c hungarian.h
 
 clean:
 	rm -f *.o pagerank inverted searchPagerank searchTfIdf scaledFootrule *.dSYM
