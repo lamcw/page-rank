@@ -95,6 +95,7 @@ static void insert_to_position(tuple_t *, int *, int, int);
 static void reset_cover(unsigned char **, int);
 static char **pos_to_parr(tuple_t *, int, rank_t);
 static void free_matrix(double **, int);
+void show_matrix(double **m, int size);
 
 // malloc a rank
 rank_t new_rank(const int size)
@@ -440,6 +441,11 @@ static void mark_selected(unsigned char **selected, int size, int row, int col)
 		selected[row][i] = 1;
 		selected[i][col] = 1;
 	}
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++)
+			printf("%d ", selected[i][j]);
+		puts("");
+	}
 }
 
 // if matrix has unqiue zero along row / column @K, return the position of
@@ -467,10 +473,10 @@ static int has_unique_zero(double **cost, unsigned char **selected, int k,
 	return count == 1 ? first_zero : -1;
 }
 
-static void pick_zero(double **cost, unsigned char **selected, int size,
+static int pick_zero(double **cost, unsigned char **selected, int size,
 		int *row, int *col)
 {
-	*row = *col = 0;
+	*row = *col = -1;
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			if (cost[i][j] == 0 && !selected[i][j]) {
@@ -480,6 +486,7 @@ static void pick_zero(double **cost, unsigned char **selected, int size,
 			}
 		}
 	}
+	return *row == -1 || *col == -1 ? -1 : 1;
 }
 
 // check if matrix has a unique zero, that is, there is only 1 zero along a
@@ -487,6 +494,7 @@ static void pick_zero(double **cost, unsigned char **selected, int size,
 static int matrix_has_unqiue_zero(double **m, unsigned char **selected,
 		int size, int *row, int *col)
 {
+	*row = *col = 0;
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			if (has_unique_zero(m, selected, i, size, 1) != -1
@@ -505,6 +513,7 @@ static void insert_to_position(tuple_t *p, int *index, int row, int col)
 	p[*index].url = row;
 	p[*index].p = col;
 	(*index)++;
+	printf("picked %d %d index %d\n", row, col, *index);
 }
 
 // step 5
@@ -543,19 +552,20 @@ static tuple_t *set_minsfd(double **orig, double **cost, int size, double *sfd)
 	}
 
 	// not all urls are assigned to one position
-	if (index < size) {
+	while (index < size) {
 		int i = 0, j = 0;
 		// arbitrarily assign a remaining url to a position
-		pick_zero(cost, selected, size, &i, &j);
+		if (!pick_zero(cost, selected, size, &i, &j))
+			return NULL;
 		mark_selected(selected, size, i, j);
-		p[index].url = i;
-		p[index].p = j;
-		index++;
+		insert_to_position(p, &index, i, j);
 		while (index < size
 		       && matrix_has_unqiue_zero(cost, selected, size, &i, &j)) {
 			mark_selected(selected, size, i, j);
 			insert_to_position(p, &index, i, j);
 		}
+		puts("matrix doesnt have unique zero anymore");
+		show_matrix(cost, size);
 	}
 
 	// push url position to the position array
@@ -575,8 +585,19 @@ static char **pos_to_parr(tuple_t *pos, int size, rank_t merged)
 		arr[pos[i].p] = malloc(strlen(merged->rank[pos[i].url]) + 1);
 		DUMP_ERR(arr[pos[i].p], "malloc failed");
 		strcpy(arr[pos[i].p], merged->rank[pos[i].url]);
+		printf("copied %s from merged %s\n", arr[pos[i].p], merged->rank[pos[i].url]);
 	}
 	return arr;
+}
+
+void show_matrix(double **m, int size)
+{
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++)
+			printf("%f ", m[i][j]);
+		puts("");
+	}
+	puts("");
 }
 
 // uses Hungarian assignment algorithm to find the minimum scaled-footrule
@@ -597,17 +618,25 @@ char **minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 	}
 
 	// step 1 & 2
+	puts("original");
+	show_matrix(cost, c_size);
 	subtract_lowest(cost, c_size);
+	show_matrix(cost, c_size);
 	// step 3
 	while (cover_zeros(cost, covered, c_size) < c_size) {
 		// step 4
 		adjust_matrix(cost, covered, c_size);
+		show_matrix(cost, c_size);
 		reset_cover(covered, c_size);
 	}
 
 	// step 5
 	tuple_t *pos = set_minsfd(orig, cost, c_size, minsfd);
-	char **p = pos_to_parr(pos, c_size, merged);
+	char **p;
+	if (pos == NULL) {
+	} else {
+		p = pos_to_parr(pos, c_size, merged);
+	}
 
 	// free eveything
 	for (int i = 0; i < c_size; i++)
