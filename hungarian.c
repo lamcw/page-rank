@@ -443,11 +443,6 @@ char **minsfd(rank_t merged, rank_t *ranks, int nrank, double *minsfd)
 	}
 
 	int nassigned = 0;
-	for (int i = 0; i < c_size; i++) {
-		for (int j = 0; j < c_size; j++)
-			printf("%f ", cost[i][j]);
-		puts("");
-	}
 	// step 1 & 2
 	subtract_lowest(cost, c_size);
 	// step 3
